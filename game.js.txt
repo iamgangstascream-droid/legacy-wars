@@ -1,0 +1,51 @@
+// Инициализация Telegram Mini App
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand(); // Разворачиваем на весь экран
+
+// Получаем данные пользователя
+const user = tg.initDataUnsafe?.user;
+const username = user?.first_name || user?.username || 'Воин';
+
+// Функция для отображения статистики
+function showStats() {
+    const statsDiv = document.getElementById('stats');
+    statsDiv.innerHTML = `
+        <h3>👤 ${username}</h3>
+        <p>Уровень: 1 | Золото: 500💰</p>
+        <p>Персонажей: 0/3</p>
+        <p>Статус: <span style="color: #4ecdc4">В разработке</span></p>
+    `;
+}
+
+// Функция начала игры
+function startGame() {
+    // Отправляем действие в бот
+    tg.sendData(JSON.stringify({
+        action: 'start_game',
+        user_id: user?.id
+    }));
+    
+    // Показываем уведомление
+    tg.showAlert('🚀 Игра скоро запустится! Следи за обновлениями в боте.');
+    
+    // Можно также открыть бота
+    tg.openTelegramLink('https://t.me/LegacyWarsGameBot');
+}
+
+// Обработка клика по персонажу
+document.querySelectorAll('.character').forEach(char => {
+    char.addEventListener('click', () => {
+        const className = char.classList[1];
+        tg.showAlert(`Вы выбрали класс: ${className}! Но игра еще в разработке.`);
+    });
+});
+
+// Показываем статистику при загрузке
+window.onload = () => {
+    showStats();
+    
+    // Меняем цвет темы Telegram
+    tg.setHeaderColor('#667eea');
+    tg.setBackgroundColor('#764ba2');
+};

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legacy Wars - Игра в Telegram</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="container">
+        <div class="game-header">
+            <h1 class="game-title">⚔️ LEGACY WARS ⚔️</h1>
+            <p class="game-subtitle">Эпическая RPG прямо в Telegram</p>
+        </div>
+
+        <div class="character-section">
+            <div class="character warrior">⚔️</div>
+            <div class="character mage">🔮</div>
+            <div class="character archer">🏹</div>
+        </div>
+
+        <div class="info-panel">
+            <h2>Добро пожаловать в игру!</h2>
+            <p>Игра находится в разработке, но скоро здесь будет:</p>
+            <ul class="features-list">
+                <li>⚔️ 3 класса персонажей</li>
+                <li>🐉 Рейды на драконов</li>
+                <li>🏰 Кланы и гильдии</li>
+                <li>⚡ PvP Арена</li>
+                <li>📋 Ежедневные квесты</li>
+                <li>🔨 Система крафта</li>
+            </ul>
+        </div>
+
+        <div class="stats-panel" id="stats">
+            <h3>Загрузка профиля...</h3>
+        </div>
+
+        <button class="play-button" onclick="startGame()">
+            🎮 Начать игру
+        </button>
+
+        <div class="footer">
+            <p>Скоро здесь появится полноценный интерфейс!</p>
+            <p class="small">Следи за обновлениями в боте</p>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
