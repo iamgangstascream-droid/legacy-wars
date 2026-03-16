@@ -2,18 +2,742 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legacy Wars - Игра в Telegram</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Legacy Wars - Эпическая RPG в Telegram</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0f1e 0%, #1a1f35 100%);
+            min-height: 100vh;
+            color: #fff;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Звездный фон */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: transparent;
+            animation: starsMove 50s linear infinite;
+        }
+
+        .stars::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
+                        radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+                        radial-gradient(2px 2px at 80px 120px, #fff, rgba(0,0,0,0)),
+                        radial-gradient(3px 3px at 150px 200px, #ffd700, rgba(0,0,0,0)),
+                        radial-gradient(2px 2px at 300px 400px, #87ceeb, rgba(0,0,0,0));
+            background-size: 400px 400px;
+            opacity: 0.5;
+        }
+
+        @keyframes starsMove {
+            from { transform: translateY(0); }
+            to { transform: translateY(-100px); }
+        }
+
+        /* Экраны */
+        .screen {
+            display: none;
+            min-height: 100vh;
+            padding: 20px 15px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            background: rgba(20, 25, 45, 0.85);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 30px;
+            padding: 25px 20px;
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Загрузка */
+        .loading-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0f1e, #1a1f35);
+        }
+
+        .spinner {
+            width: 70px;
+            height: 70px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #ffd700;
+            border-right-color: #ff6b6b;
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            margin: 20px auto;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.4em;
+            background: linear-gradient(45deg, #ffd700, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
+
+        /* Заголовки */
+        .game-title {
+            font-size: 2.5em;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ffd700, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: titleGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes titleGlow {
+            0%, 100% { filter: drop-shadow(0 0 10px rgba(255,215,0,0.3)); }
+            50% { filter: drop-shadow(0 0 20px rgba(255,107,107,0.5)); }
+        }
+
+        .game-subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        /* Кнопки меню */
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 350px;
+            margin: 20px auto;
+        }
+
+        .menu-btn {
+            padding: 18px;
+            font-size: 1.3em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .menu-btn:active {
+            transform: translateY(0);
+        }
+
+        .menu-btn.special {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        /* Сетка персонажей */
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .character-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .character-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+        }
+
+        .character-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: #ffd700;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .character-card.selected {
+            border-color: #4ecdc4;
+            background: rgba(78, 205, 196, 0.2);
+            box-shadow: 0 0 30px rgba(78, 205, 196, 0.4);
+        }
+
+        .character-emoji {
+            font-size: 5em;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+        }
+
+        .character-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+            font-size: 0.9em;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .stats span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Поле ввода */
+        .input-group {
+            margin: 20px 0;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #character-name {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            color: white;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        #character-name:focus {
+            outline: none;
+            border-color: #4ecdc4;
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+        }
+
+        #character-name::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .create-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #4ecdc4, #45b7d1);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+        }
+
+        .create-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(78, 205, 196, 0.6);
+        }
+
+        .create-btn:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* Список персонажей */
+        .characters-list {
+            margin: 20px 0;
+        }
+
+        .character-item {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .character-item:hover {
+            transform: translateX(5px);
+            border-color: #ffd700;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+        }
+
+        .character-item.selected {
+            border-color: #4ecdc4;
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.4);
+        }
+
+        .char-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .char-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .char-class {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .char-level {
+            font-size: 1.1em;
+            color: #4ecdc4;
+            font-weight: bold;
+        }
+
+        /* Кнопка назад */
+        .back-btn {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            font-size: 1.2em;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-5px);
+        }
+
+        /* Игровой экран */
+        .game-container {
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+        }
+
+        .game-header h2 {
+            color: #ffd700;
+        }
+
+        .game-stats {
+            display: flex;
+            gap: 15px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+
+        .battle-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+            padding: 30px 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .battle-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.5) 100%);
+            pointer-events: none;
+        }
+
+        .player-area, .enemy-area {
+            text-align: center;
+            flex: 1;
+            position: relative;
+            z-index: 2;
+        }
+
+        .battle-char {
+            font-size: 6em;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+            transition: all 0.3s;
+        }
+
+        .player-area .battle-char {
+            animation: playerIdle 2s ease-in-out infinite;
+        }
+
+        .enemy-area .battle-char {
+            animation: enemyIdle 2.5s ease-in-out infinite;
+        }
+
+        @keyframes playerIdle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes enemyIdle {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+
+        .vs {
+            font-size: 2.5em;
+            font-weight: 900;
+            background: linear-gradient(45deg, #ff6b6b, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 10px;
+            text-shadow: 0 0 20px rgba(255,107,107,0.5);
+            z-index: 2;
+            animation: vsPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes vsPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+
+        .health-bar {
+            width: 100%;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(0, 0, 0, 0.3);
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .health-fill.player {
+            background: linear-gradient(90deg, #4ecdc4, #45b7d1);
+        }
+
+        .health-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px black;
+            z-index: 3;
+        }
+
+        .battle-log {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 20px 0;
+            min-height: 80px;
+            font-family: 'Courier New', monospace;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            overflow-y: auto;
+            max-height: 150px;
+        }
+
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .battle-controls {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .attack-btn {
+            flex: 2;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ff5252);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.5em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(255, 107, 107, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .attack-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.8);
+        }
+
+        .attack-btn:active {
+            transform: scale(0.95);
+        }
+
+        .run-btn {
+            flex: 1;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .run-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #ff6b6b;
+        }
+
+        /* Профиль */
+        .profile-info {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .profile-stat {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .profile-stat span {
+            display: block;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffd700;
+            margin-top: 5px;
+        }
+
+        /* Анимации битвы */
+        @keyframes hit {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2) translateX(10px); }
+        }
+
+        .hit-animation {
+            animation: hit 0.3s ease;
+        }
+
+        @keyframes enemyHit {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.8) translateX(-10px); }
+        }
+
+        .enemy-hit {
+            animation: enemyHit 0.3s ease;
+        }
+
+        .damage-number {
+            position: absolute;
+            color: #ffd700;
+            font-weight: 900;
+            font-size: 2.5em;
+            animation: damageFloat 1s forwards;
+            text-shadow: 2px 2px 4px black;
+            z-index: 10;
+        }
+
+        @keyframes damageFloat {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+        }
+
+        /* Уведомления */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #4ecdc4, #45b7d1);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+            z-index: 1000;
+            animation: notificationSlide 0.5s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        @keyframes notificationSlide {
+            from { transform: translate(-50%, -100px); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+
+        /* Адаптивность */
+        @media (max-width: 600px) {
+            .game-title {
+                font-size: 1.8em;
+            }
+
+            .character-emoji {
+                font-size: 3.5em;
+            }
+
+            .battle-char {
+                font-size: 4em;
+            }
+
+            .vs {
+                font-size: 1.8em;
+            }
+
+            .attack-btn {
+                font-size: 1.2em;
+                padding: 15px;
+            }
+
+            .run-btn {
+                font-size: 1em;
+                padding: 15px;
+            }
+
+            .battle-controls {
+                flex-direction: column;
+            }
+
+            .menu-btn {
+                font-size: 1.1em;
+                padding: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="stars"></div>
     
     <!-- Экран загрузки -->
-    <div id="loading" class="screen active">
+    <div id="loading-screen" class="loading-screen">
         <div class="spinner"></div>
-        <h2>Загрузка Legacy Wars...</h2>
+        <div class="loading-text">Загрузка Legacy Wars...</div>
+        <div style="margin-top: 20px; color: rgba(255,255,255,0.5);">⚔️ Легенды рождаются здесь ⚔️</div>
     </div>
 
     <!-- Главное меню -->
@@ -23,95 +747,120 @@
             <p class="game-subtitle">Эпическая RPG прямо в Telegram</p>
             
             <div class="menu-buttons">
-                <button class="menu-btn" onclick="showScreen('char-select')">
-                    ⚔️ Начать игру
+                <button class="menu-btn special" onclick="showScreen('char-select')">
+                    ⚔️ НАЧАТЬ ИГРУ
+                </button>
+                <button class="menu-btn" onclick="showScreen('characters')">
+                    📋 МОИ ГЕРОИ
                 </button>
                 <button class="menu-btn" onclick="showScreen('profile')">
-                    📊 Профиль
+                    📊 ПРОФИЛЬ
                 </button>
                 <button class="menu-btn" onclick="showScreen('help')">
-                    📖 Помощь
+                    📖 ПОМОЩЬ
                 </button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px; color: rgba(255,255,255,0.5);">
+                <span id="player-name">Загрузка...</span>
             </div>
         </div>
     </div>
 
-    <!-- Экран выбора персонажа -->
+    <!-- Экран выбора персонажа для создания -->
     <div id="char-select" class="screen">
         <div class="container">
-            <h2>Выбери своего героя</h2>
+            <h2>⚔️ ВЫБЕРИ ГЕРОЯ</h2>
             
             <div class="character-grid">
-                <div class="character-card" onclick="selectClass('warrior')">
+                <div class="character-card" onclick="selectClass('warrior')" id="card-warrior">
                     <div class="character-emoji">⚔️</div>
-                    <h3>Воин</h3>
+                    <h3>ВОИН</h3>
                     <div class="stats">
-                        <div>❤️ 120</div>
-                        <div>⚔️ 15</div>
-                        <div>🛡️ 15</div>
+                        <span>❤️ 120</span>
+                        <span>⚔️ 15</span>
+                        <span>🛡️ 15</span>
                     </div>
                     <p>Мастер ближнего боя</p>
                 </div>
                 
-                <div class="character-card" onclick="selectClass('mage')">
+                <div class="character-card" onclick="selectClass('mage')" id="card-mage">
                     <div class="character-emoji">🔮</div>
-                    <h3>Маг</h3>
+                    <h3>МАГ</h3>
                     <div class="stats">
-                        <div>❤️ 80</div>
-                        <div>⚔️ 20</div>
-                        <div>🛡️ 5</div>
+                        <span>❤️ 80</span>
+                        <span>⚔️ 20</span>
+                        <span>🛡️ 5</span>
                     </div>
-                    <p>Повелитель магии</p>
+                    <p>Повелитель стихий</p>
                 </div>
                 
-                <div class="character-card" onclick="selectClass('archer')">
+                <div class="character-card" onclick="selectClass('archer')" id="card-archer">
                     <div class="character-emoji">🏹</div>
-                    <h3>Лучник</h3>
+                    <h3>ЛУЧНИК</h3>
                     <div class="stats">
-                        <div>❤️ 90</div>
-                        <div>⚔️ 18</div>
-                        <div>🛡️ 8</div>
+                        <span>❤️ 90</span>
+                        <span>⚔️ 18</span>
+                        <span>🛡️ 8</span>
                     </div>
                     <p>Меткий стрелок</p>
                 </div>
             </div>
             
-            <div class="input-group" id="name-input" style="display: none;">
-                <input type="text" id="character-name" placeholder="Введи имя героя">
-                <button class="create-btn" onclick="createCharacter()">Создать героя</button>
+            <div id="name-input" style="display: none;">
+                <input type="text" id="character-name" placeholder="Введи имя героя (2-20 символов)" maxlength="20">
+                <button class="create-btn" onclick="createCharacter()">✨ СОЗДАТЬ ГЕРОЯ</button>
             </div>
             
-            <button class="back-btn" onclick="showScreen('main-menu')">← Назад</button>
+            <button class="back-btn" onclick="showScreen('main-menu')">← В МЕНЮ</button>
+        </div>
+    </div>
+
+    <!-- Экран списка персонажей -->
+    <div id="characters" class="screen">
+        <div class="container">
+            <h2>📋 МОИ ГЕРОИ</h2>
+            <div id="characters-list" class="characters-list">
+                <p style="text-align: center; color: rgba(255,255,255,0.5);">Загрузка...</p>
+            </div>
+            <button class="back-btn" onclick="showScreen('main-menu')">← В МЕНЮ</button>
         </div>
     </div>
 
     <!-- Экран профиля -->
     <div id="profile" class="screen">
         <div class="container">
-            <h2>📊 Профиль</h2>
+            <h2>📊 ПРОФИЛЬ</h2>
             <div id="profile-info" class="profile-info">
-                <p>Загрузка...</p>
+                <p style="text-align: center;">Загрузка...</p>
             </div>
-            <div id="characters-list" class="characters-list"></div>
-            <button class="back-btn" onclick="showScreen('main-menu')">← Назад</button>
+            <button class="back-btn" onclick="showScreen('main-menu')">← В МЕНЮ</button>
         </div>
     </div>
 
     <!-- Экран помощи -->
     <div id="help" class="screen">
         <div class="container">
-            <h2>📖 Помощь</h2>
-            <div class="help-content">
-                <p>🎮 Как играть:</p>
-                <ol>
-                    <li>Создай персонажа в боте</li>
-                    <li>Нажми "Начать игру"</li>
-                    <li>Сражайся с монстрами</li>
-                    <li>Получай опыт и золото</li>
-                </ol>
-                <p>⚔️ Скоро здесь будет PvP арена!</p>
+            <h2>📖 ПОМОЩЬ</h2>
+            <div style="margin: 20px 0;">
+                <h3>🎮 КАК ИГРАТЬ:</h3>
+                <p>1. Создай персонажа в разделе "Мои герои"</p>
+                <p>2. Выбери класс и дай имя</p>
+                <p>3. Нажми "Начать игру" и выбери героя</p>
+                <p>4. Атакуй врагов кнопкой ⚔️</p>
+                <p>5. Побеждай и получай награды!</p>
+                
+                <h3 style="margin-top: 20px;">⚔️ СОВЕТЫ:</h3>
+                <p>• Воин - лучший для новичков</p>
+                <p>• Маг наносит много урона, но хрупок</p>
+                <p>• Лучник хорош против сильных врагов</p>
+                
+                <h3 style="margin-top: 20px;">💰 НАГРАДЫ:</h3>
+                <p>• За победу: опыт и золото</p>
+                <p>• За уровень: +10 ко всем статам</p>
+                <p>• Рефералы: 100💰 за друга</p>
             </div>
-            <button class="back-btn" onclick="showScreen('main-menu')">← Назад</button>
+            <button class="back-btn" onclick="showScreen('main-menu')">← В МЕНЮ</button>
         </div>
     </div>
 
@@ -119,33 +868,445 @@
     <div id="game" class="screen">
         <div class="game-container">
             <div class="game-header">
-                <h2>⚔️ Битва</h2>
-                <div id="game-stats" class="game-stats"></div>
+                <h2>⚔️ БИТВА</h2>
+                <div class="game-stats">
+                    <div class="stat-item">💰 <span id="battle-gold">0</span></div>
+                    <div class="stat-item">📊 <span id="battle-level">1</span></div>
+                </div>
             </div>
             
             <div id="battle-area" class="battle-area">
                 <div class="player-area">
                     <div id="player-char" class="battle-char">⚔️</div>
-                    <div id="player-hp" class="hp-bar"></div>
+                    <div class="health-bar">
+                        <div id="player-health" class="health-fill player" style="width: 100%"></div>
+                        <span class="health-text" id="player-health-text">100/100</span>
+                    </div>
+                    <div id="player-name-battle" style="margin-top: 10px;">Герой</div>
                 </div>
+                
                 <div class="vs">VS</div>
+                
                 <div class="enemy-area">
                     <div id="enemy-char" class="battle-char">👾</div>
-                    <div id="enemy-hp" class="hp-bar"></div>
+                    <div class="health-bar">
+                        <div id="enemy-health" class="health-fill" style="width: 100%"></div>
+                        <span class="health-text" id="enemy-health-text">50/50</span>
+                    </div>
+                    <div id="enemy-name" style="margin-top: 10px;">Враг</div>
                 </div>
             </div>
             
-            <div id="battle-log" class="battle-log"></div>
-            
-            <div class="battle-controls">
-                <button class="attack-btn" onclick="playerAttack()">⚔️ Атаковать</button>
-                <button class="run-btn" onclick="runFromBattle()">🏃 Сбежать</button>
+            <div id="battle-log" class="battle-log">
+                <div class="log-entry">⚔️ Битва начинается!</div>
             </div>
             
-            <button class="back-btn" onclick="showScreen('main-menu')">← Выйти</button>
+            <div class="battle-controls">
+                <button class="attack-btn" onclick="playerAttack()" id="attack-btn">⚔️ АТАКОВАТЬ</button>
+                <button class="run-btn" onclick="runFromBattle()" id="run-btn">🏃 СБЕЖАТЬ</button>
+            </div>
+            
+            <button class="back-btn" onclick="exitBattle()">← ВЫЙТИ</button>
         </div>
     </div>
 
-    <script src="game.js"></script>
+    <script>
+        // Telegram Mini App инициализация
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        tg.setHeaderColor('#0a0f1e');
+        tg.setBackgroundColor('#1a1f35');
+        
+        // Глобальные переменные
+        let currentUser = null;
+        let currentCharacter = null;
+        let currentEnemy = null;
+        let characters = [];
+        let battleInterval = null;
+        let selectedClass = null;
+        let playerMaxHp = 100;
+        let playerCurrentHp = 100;
+        
+        // Показать экран
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            
+            if (screenId === 'characters') {
+                loadCharacters();
+            } else if (screenId === 'profile') {
+                loadProfile();
+            } else if (screenId === 'char-select') {
+                resetClassSelection();
+            }
+            
+            // Вибрация на телефоне
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        }
+        
+        // Сброс выбора класса
+        function resetClassSelection() {
+            document.querySelectorAll('.character-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.getElementById('name-input').style.display = 'none';
+            document.getElementById('character-name').value = '';
+            selectedClass = null;
+        }
+        
+        // Выбор класса
+        function selectClass(className) {
+            document.querySelectorAll('.character-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.getElementById(`card-${className}`).classList.add('selected');
+            
+            document.getElementById('name-input').style.display = 'block';
+            selectedClass = className;
+            
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.selectionChanged();
+            }
+        }
+        
+        // Создание персонажа
+        function createCharacter() {
+            const name = document.getElementById('character-name').value.trim();
+            
+            if (!selectedClass) {
+                showNotification('❌ Выбери класс!', 'error');
+                return;
+            }
+            
+            if (!name) {
+                showNotification('❌ Введи имя!', 'error');
+                return;
+            }
+            
+            if (name.length < 2 || name.length > 20) {
+                showNotification('❌ Имя должно быть от 2 до 20 символов!', 'error');
+                return;
+            }
+            
+            // Отправляем запрос в бота
+            tg.sendData(JSON.stringify({
+                action: 'create_character',
+                class: selectedClass,
+                name: name,
+                user_id: tg.initDataUnsafe.user?.id
+            }));
+            
+            showNotification('✨ Персонаж создается...', 'success');
+            
+            setTimeout(() => {
+                showScreen('characters');
+            }, 1000);
+        }
+        
+        // Загрузка списка персонажей
+        function loadCharacters() {
+            const listDiv = document.getElementById('characters-list');
+            listDiv.innerHTML = '<p style="text-align: center;">Загрузка...</p>';
+            
+            // Имитация загрузки (в реальности данные придут от бота)
+            setTimeout(() => {
+                if (characters.length === 0) {
+                    listDiv.innerHTML = `
+                        <p style="text-align: center; color: rgba(255,255,255,0.5);">У тебя пока нет героев</p>
+                        <button class="create-btn" onclick="showScreen('char-select')" style="margin-top: 20px;">
+                            ✨ СОЗДАТЬ ГЕРОЯ
+                        </button>
+                    `;
+                } else {
+                    let html = '';
+                    characters.forEach(char => {
+                        html += `
+                            <div class="character-item" onclick="selectCharacter(${char.id})">
+                                <div class="char-info">
+                                    <span class="char-name">${char.name}</span>
+                                    <span class="char-class">${getClassEmoji(char.class)} ${char.class}</span>
+                                </div>
+                                <div class="char-level">ур.${char.level}</div>
+                            </div>
+                        `;
+                    });
+                    listDiv.innerHTML = html;
+                }
+            }, 500);
+        }
+        
+        // Получить эмодзи класса
+        function getClassEmoji(className) {
+            const emojis = {
+                'warrior': '⚔️',
+                'mage': '🔮',
+                'archer': '🏹'
+            };
+            return emojis[className] || '⚔️';
+        }
+        
+        // Выбор персонажа для игры
+        function selectCharacter(characterId) {
+            currentCharacter = characters.find(c => c.id === characterId);
+            if (currentCharacter) {
+                showNotification(`✅ Выбран ${currentCharacter.name}`, 'success');
+                startGame();
+            }
+        }
+        
+        // Загрузка профиля
+        function loadProfile() {
+            const profileDiv = document.getElementById('profile-info');
+            
+            // Имитация загрузки
+            setTimeout(() => {
+                profileDiv.innerHTML = `
+                    <div style="text-align: center;">
+                        <h3>${tg.initDataUnsafe.user?.first_name || 'Игрок'}</h3>
+                    </div>
+                    <div class="profile-stats">
+                        <div class="profile-stat">
+                            <div>💰 Золото</div>
+                            <span>1,234</span>
+                        </div>
+                        <div class="profile-stat">
+                            <div>⚔️ Битвы</div>
+                            <span>42</span>
+                        </div>
+                        <div class="profile-stat">
+                            <div>🏆 Победы</div>
+                            <span>38</span>
+                        </div>
+                        <div class="profile-stat">
+                            <div>📊 Уровень</div>
+                            <span>5</span>
+                        </div>
+                    </div>
+                `;
+            }, 500);
+        }
+        
+        // Начать игру
+        function startGame() {
+            if (!currentCharacter) {
+                showNotification('❌ Сначала выбери героя!', 'error');
+                showScreen('characters');
+                return;
+            }
+            
+            // Создаем врага
+            const enemies = [
+                { name: 'Гоблин', emoji: '👾', hp: 50, maxHp: 50, attack: 8, defense: 3, gold: 25, exp: 20 },
+                { name: 'Орк', emoji: '👹', hp: 80, maxHp: 80, attack: 12, defense: 5, gold: 50, exp: 35 },
+                { name: 'Скелет', emoji: '💀', hp: 60, maxHp: 60, attack: 10, defense: 4, gold: 35, exp: 25 },
+                { name: 'Волк', emoji: '🐺', hp: 40, maxHp: 40, attack: 15, defense: 2, gold: 20, exp: 15 },
+                { name: 'Тролль', emoji: '🧌', hp: 100, maxHp: 100, attack: 10, defense: 8, gold: 75, exp: 50 },
+                { name: 'Дракон', emoji: '🐉', hp: 150, maxHp: 150, attack: 20, defense: 10, gold: 150, exp: 100 }
+            ];
+            
+            currentEnemy = { ...enemies[Math.floor(Math.random() * enemies.length)] };
+            playerMaxHp = currentCharacter?.hp || 100;
+            playerCurrentHp = playerMaxHp;
+            
+            document.getElementById('player-char').textContent = getClassEmoji(currentCharacter.class);
+            document.getElementById('enemy-char').textContent = currentEnemy.emoji;
+            document.getElementById('enemy-name').textContent = currentEnemy.name;
+            document.getElementById('player-name-battle').textContent = currentCharacter.name;
+            
+            updateHealthBars();
+            
+            document.getElementById('battle-log').innerHTML = '<div class="log-entry">⚔️ Битва начинается!</div>';
+            
+            showScreen('game');
+        }
+        
+        // Атака игрока
+        function playerAttack() {
+            if (!currentEnemy) return;
+            
+            // Анимация
+            document.querySelector('.player-area .battle-char').classList.add('hit-animation');
+            setTimeout(() => {
+                document.querySelector('.player-area .battle-char').classList.remove('hit-animation');
+            }, 300);
+            
+            // Расчет урона
+            const damage = Math.floor(Math.random() * 20) + 10;
+            currentEnemy.hp = Math.max(0, currentEnemy.hp - damage);
+            
+            // Показываем урон
+            showDamage(damage, 'player');
+            
+            // Лог
+            addBattleLog(`⚔️ Ты нанес ${damage} урона!`);
+            updateHealthBars();
+            
+            // Проверка победы
+            if (currentEnemy.hp <= 0) {
+                victory();
+                return;
+            }
+            
+            // Ход врага через секунду
+            setTimeout(enemyAttack, 800);
+        }
+        
+        // Атака врага
+        function enemyAttack() {
+            document.querySelector('.enemy-area .battle-char').classList.add('enemy-hit');
+            setTimeout(() => {
+                document.querySelector('.enemy-area .battle-char').classList.remove('enemy-hit');
+            }, 300);
+            
+            const damage = Math.floor(Math.random() * 15) + 5;
+            playerCurrentHp = Math.max(0, playerCurrentHp - damage);
+            
+            showDamage(damage, 'enemy');
+            addBattleLog(`👾 ${currentEnemy.name} нанес ${damage} урона!`);
+            updateHealthBars();
+            
+            // Проверка поражения
+            if (playerCurrentHp <= 0) {
+                defeat();
+            }
+        }
+        
+        // Победа
+        function victory() {
+            addBattleLog(`🎉 ПОБЕДА! +${currentEnemy.exp} опыта, +${currentEnemy.gold} золота`);
+            
+            // Отправляем результат в бота
+            tg.sendData(JSON.stringify({
+                action: 'battle_result',
+                result: 'victory',
+                reward: { exp: currentEnemy.exp, gold: currentEnemy.gold }
+            }));
+            
+            document.getElementById('attack-btn').disabled = true;
+            document.getElementById('run-btn').disabled = true;
+            
+            setTimeout(() => {
+                currentEnemy = null;
+                showScreen('main-menu');
+                document.getElementById('attack-btn').disabled = false;
+                document.getElementById('run-btn').disabled = false;
+            }, 2000);
+        }
+        
+        // Поражение
+        function defeat() {
+            addBattleLog('💀 Ты повержен...');
+            
+            document.getElementById('attack-btn').disabled = true;
+            document.getElementById('run-btn').disabled = true;
+            
+            setTimeout(() => {
+                currentEnemy = null;
+                playerCurrentHp = playerMaxHp;
+                showScreen('main-menu');
+                document.getElementById('attack-btn').disabled = false;
+                document.getElementById('run-btn').disabled = false;
+            }, 2000);
+        }
+        
+        // Бегство
+        function runFromBattle() {
+            addBattleLog('🏃 Ты сбежал с поля боя');
+            
+            currentEnemy = null;
+            playerCurrentHp = playerMaxHp;
+            
+            document.getElementById('attack-btn').disabled = true;
+            document.getElementById('run-btn').disabled = true;
+            
+            setTimeout(() => {
+                showScreen('main-menu');
+                document.getElementById('attack-btn').disabled = false;
+                document.getElementById('run-btn').disabled = false;
+            }, 1000);
+        }
+        
+        // Выход из битвы
+        function exitBattle() {
+            currentEnemy = null;
+            playerCurrentHp = playerMaxHp;
+            showScreen('main-menu');
+        }
+        
+        // Обновление полос здоровья
+        function updateHealthBars() {
+            if (currentEnemy) {
+                const enemyPercent = (currentEnemy.hp / currentEnemy.maxHp) * 100;
+                document.getElementById('enemy-health').style.width = `${enemyPercent}%`;
+                document.getElementById('enemy-health-text').textContent = `${currentEnemy.hp}/${currentEnemy.maxHp}`;
+            }
+            
+            const playerPercent = (playerCurrentHp / playerMaxHp) * 100;
+            document.getElementById('player-health').style.width = `${playerPercent}%`;
+            document.getElementById('player-health-text').textContent = `${playerCurrentHp}/${playerMaxHp}`;
+        }
+        
+        // Показать урон
+        function showDamage(damage, target) {
+            const damageDiv = document.createElement('div');
+            damageDiv.className = 'damage-number';
+            damageDiv.textContent = `-${damage}`;
+            damageDiv.style.color = target === 'player' ? '#ff6b6b' : '#ffd700';
+            
+            const area = target === 'player' ? 
+                document.querySelector('.player-area') : 
+                document.querySelector('.enemy-area');
+            
+            area.appendChild(damageDiv);
+            
+            setTimeout(() => {
+                damageDiv.remove();
+            }, 1000);
+        }
+        
+        // Добавить в лог
+        function addBattleLog(text) {
+            const log = document.getElementById('battle-log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = text;
+            log.insertBefore(entry, log.firstChild);
+            
+            if (log.children.length > 5) {
+                log.removeChild(log.lastChild);
+            }
+        }
+        
+        // Показать уведомление
+        function showNotification(text, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = text;
+            notification.style.background = type === 'success' ? 
+                'linear-gradient(135deg, #4ecdc4, #45b7d1)' : 
+                'linear-gradient(135deg, #ff6b6b, #ff5252)';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 2000);
+        }
+        
+        // Загрузка при старте
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+                showScreen('main-menu');
+                document.getElementById('player-name').textContent = 
+                    `⚔️ ${tg.initDataUnsafe.user?.first_name || 'Воин'}`;
+            }, 1500);
+        };
+    </script>
 </body>
 </html>
