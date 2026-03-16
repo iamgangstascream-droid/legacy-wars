@@ -9,42 +9,140 @@
 </head>
 <body>
     <div class="stars"></div>
-    <div class="container">
-        <div class="game-header">
+    
+    <!-- Экран загрузки -->
+    <div id="loading" class="screen active">
+        <div class="spinner"></div>
+        <h2>Загрузка Legacy Wars...</h2>
+    </div>
+
+    <!-- Главное меню -->
+    <div id="main-menu" class="screen">
+        <div class="container">
             <h1 class="game-title">⚔️ LEGACY WARS ⚔️</h1>
             <p class="game-subtitle">Эпическая RPG прямо в Telegram</p>
+            
+            <div class="menu-buttons">
+                <button class="menu-btn" onclick="showScreen('char-select')">
+                    ⚔️ Начать игру
+                </button>
+                <button class="menu-btn" onclick="showScreen('profile')">
+                    📊 Профиль
+                </button>
+                <button class="menu-btn" onclick="showScreen('help')">
+                    📖 Помощь
+                </button>
+            </div>
         </div>
+    </div>
 
-        <div class="character-section">
-            <div class="character warrior">⚔️</div>
-            <div class="character mage">🔮</div>
-            <div class="character archer">🏹</div>
+    <!-- Экран выбора персонажа -->
+    <div id="char-select" class="screen">
+        <div class="container">
+            <h2>Выбери своего героя</h2>
+            
+            <div class="character-grid">
+                <div class="character-card" onclick="selectClass('warrior')">
+                    <div class="character-emoji">⚔️</div>
+                    <h3>Воин</h3>
+                    <div class="stats">
+                        <div>❤️ 120</div>
+                        <div>⚔️ 15</div>
+                        <div>🛡️ 15</div>
+                    </div>
+                    <p>Мастер ближнего боя</p>
+                </div>
+                
+                <div class="character-card" onclick="selectClass('mage')">
+                    <div class="character-emoji">🔮</div>
+                    <h3>Маг</h3>
+                    <div class="stats">
+                        <div>❤️ 80</div>
+                        <div>⚔️ 20</div>
+                        <div>🛡️ 5</div>
+                    </div>
+                    <p>Повелитель магии</p>
+                </div>
+                
+                <div class="character-card" onclick="selectClass('archer')">
+                    <div class="character-emoji">🏹</div>
+                    <h3>Лучник</h3>
+                    <div class="stats">
+                        <div>❤️ 90</div>
+                        <div>⚔️ 18</div>
+                        <div>🛡️ 8</div>
+                    </div>
+                    <p>Меткий стрелок</p>
+                </div>
+            </div>
+            
+            <div class="input-group" id="name-input" style="display: none;">
+                <input type="text" id="character-name" placeholder="Введи имя героя">
+                <button class="create-btn" onclick="createCharacter()">Создать героя</button>
+            </div>
+            
+            <button class="back-btn" onclick="showScreen('main-menu')">← Назад</button>
         </div>
+    </div>
 
-        <div class="info-panel">
-            <h2>Добро пожаловать в игру!</h2>
-            <p>Игра находится в разработке, но скоро здесь будет:</p>
-            <ul class="features-list">
-                <li>⚔️ 3 класса персонажей</li>
-                <li>🐉 Рейды на драконов</li>
-                <li>🏰 Кланы и гильдии</li>
-                <li>⚡ PvP Арена</li>
-                <li>📋 Ежедневные квесты</li>
-                <li>🔨 Система крафта</li>
-            </ul>
+    <!-- Экран профиля -->
+    <div id="profile" class="screen">
+        <div class="container">
+            <h2>📊 Профиль</h2>
+            <div id="profile-info" class="profile-info">
+                <p>Загрузка...</p>
+            </div>
+            <div id="characters-list" class="characters-list"></div>
+            <button class="back-btn" onclick="showScreen('main-menu')">← Назад</button>
         </div>
+    </div>
 
-        <div class="stats-panel" id="stats">
-            <h3>Загрузка профиля...</h3>
+    <!-- Экран помощи -->
+    <div id="help" class="screen">
+        <div class="container">
+            <h2>📖 Помощь</h2>
+            <div class="help-content">
+                <p>🎮 Как играть:</p>
+                <ol>
+                    <li>Создай персонажа в боте</li>
+                    <li>Нажми "Начать игру"</li>
+                    <li>Сражайся с монстрами</li>
+                    <li>Получай опыт и золото</li>
+                </ol>
+                <p>⚔️ Скоро здесь будет PvP арена!</p>
+            </div>
+            <button class="back-btn" onclick="showScreen('main-menu')">← Назад</button>
         </div>
+    </div>
 
-        <button class="play-button" onclick="startGame()">
-            🎮 Начать игру
-        </button>
-
-        <div class="footer">
-            <p>Скоро здесь появится полноценный интерфейс!</p>
-            <p class="small">Следи за обновлениями в боте</p>
+    <!-- Игровой экран -->
+    <div id="game" class="screen">
+        <div class="game-container">
+            <div class="game-header">
+                <h2>⚔️ Битва</h2>
+                <div id="game-stats" class="game-stats"></div>
+            </div>
+            
+            <div id="battle-area" class="battle-area">
+                <div class="player-area">
+                    <div id="player-char" class="battle-char">⚔️</div>
+                    <div id="player-hp" class="hp-bar"></div>
+                </div>
+                <div class="vs">VS</div>
+                <div class="enemy-area">
+                    <div id="enemy-char" class="battle-char">👾</div>
+                    <div id="enemy-hp" class="hp-bar"></div>
+                </div>
+            </div>
+            
+            <div id="battle-log" class="battle-log"></div>
+            
+            <div class="battle-controls">
+                <button class="attack-btn" onclick="playerAttack()">⚔️ Атаковать</button>
+                <button class="run-btn" onclick="runFromBattle()">🏃 Сбежать</button>
+            </div>
+            
+            <button class="back-btn" onclick="showScreen('main-menu')">← Выйти</button>
         </div>
     </div>
 
