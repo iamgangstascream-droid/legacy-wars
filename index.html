@@ -3,366 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legacy Wars</title>
+    <title>Legacy Wars - Отладка</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0a0f1e 0%, #1a1f35 100%);
-            min-height: 100vh;
-            color: white;
-            padding: 20px;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-            margin: 20px 0;
-            color: #ffd700;
-        }
-        .menu-buttons {
-            display: flex;
-            gap: 10px;
-            margin: 20px 0;
-        }
-        .menu-btn {
-            flex: 1;
-            padding: 15px;
-            background: #4ecdc4;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1em;
-            cursor: pointer;
-        }
-        .character-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin: 20px 0;
-        }
-        .character-card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            border: 2px solid transparent;
-        }
-        .character-card.selected {
-            border-color: #4ecdc4;
-            background: rgba(78, 205, 196, 0.2);
-        }
-        .character-emoji {
-            font-size: 3em;
-        }
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            margin: 10px 0;
-            font-size: 0.9em;
-        }
-        .input-group {
-            margin: 20px 0;
-        }
-        #character-name {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 10px;
-            color: white;
-            margin-bottom: 10px;
-        }
-        .create-btn {
-            width: 100%;
-            padding: 15px;
-            background: #4ecdc4;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1em;
-            cursor: pointer;
-        }
-        .characters-list {
-            margin: 20px 0;
-        }
-        .character-item {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 15px;
-            margin: 10px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-        }
-        .character-item:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        .back-btn {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-        .notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #4ecdc4;
-            color: white;
-            padding: 15px 30px;
-            border-radius: 50px;
-            z-index: 1000;
-            animation: slideDown 0.3s ease;
-        }
-        @keyframes slideDown {
-            from { transform: translate(-50%, -100px); opacity: 0; }
-            to { transform: translate(-50%, 0); opacity: 1; }
-        }
-        .hidden {
-            display: none !important;
-        }
-        .debug-btn {
-            background: #ff6b6b;
-            margin-top: 10px;
-            font-size: 0.9em;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: monospace; background: #0a0f1e; color: white; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { color: #ffd700; text-align: center; }
+        button { padding: 15px; margin: 5px; background: #4ecdc4; color: white; border: none; border-radius: 10px; cursor: pointer; width: 100%; }
+        .debug-box { background: #1a1f35; padding: 15px; border-radius: 10px; margin: 10px 0; font-size: 12px; }
+        .success { color: #4ecdc4; }
+        .error { color: #ff6b6b; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>⚔️ LEGACY WARS ⚔️</h1>
+        <h1>⚔️ LEGACY WARS - ОТЛАДКА ⚔️</h1>
         
-        <!-- Главное меню -->
-        <div id="main-menu">
-            <div class="menu-buttons">
-                <button class="menu-btn" onclick="showScreen('char-select')">⚔️ НОВЫЙ ГЕРОЙ</button>
-                <button class="menu-btn" onclick="loadCharacters()">📋 МОИ ГЕРОИ</button>
-            </div>
-            <button class="menu-btn debug-btn" onclick="testBotConnection()">🔧 ТЕСТ СВЯЗИ</button>
+        <div class="debug-box">
+            <div id="tg-status">🔄 Проверка Telegram...</div>
+            <div id="user-info">👤 Загрузка...</div>
         </div>
         
-        <!-- Экран выбора класса -->
-        <div id="char-select" class="hidden">
-            <h2>Выбери класс</h2>
-            <div class="character-grid">
-                <div class="character-card" onclick="selectClass('warrior')" id="card-warrior">
-                    <div class="character-emoji">⚔️</div>
-                    <h3>ВОИН</h3>
-                    <div class="stats">
-                        <span>❤️120</span>
-                        <span>⚔️15</span>
-                        <span>🛡️15</span>
-                    </div>
-                </div>
-                <div class="character-card" onclick="selectClass('mage')" id="card-mage">
-                    <div class="character-emoji">🔮</div>
-                    <h3>МАГ</h3>
-                    <div class="stats">
-                        <span>❤️80</span>
-                        <span>⚔️20</span>
-                        <span>🛡️5</span>
-                    </div>
-                </div>
-                <div class="character-card" onclick="selectClass('archer')" id="card-archer">
-                    <div class="character-emoji">🏹</div>
-                    <h3>ЛУЧНИК</h3>
-                    <div class="stats">
-                        <span>❤️90</span>
-                        <span>⚔️18</span>
-                        <span>🛡️8</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="name-input" class="hidden">
-                <input type="text" id="character-name" placeholder="Введи имя героя" maxlength="20">
-                <button class="create-btn" onclick="createCharacter()">✨ СОЗДАТЬ ГЕРОЯ</button>
-            </div>
-            <button class="back-btn" onclick="showScreen('main-menu')">← НАЗАД</button>
-        </div>
+        <button onclick="testTg()">📤 1. ТЕСТ TELEGRAM API</button>
+        <button onclick="testBot()">🤖 2. ТЕСТ ОТПРАВКИ В БОТА</button>
+        <button onclick="testFull()">⚡ 3. ТЕСТ СОЗДАНИЯ ПЕРСОНАЖА</button>
         
-        <!-- Список героев -->
-        <div id="characters-list" class="hidden">
-            <h2>Мои герои</h2>
-            <div id="characters-container">
-                <p>Загрузка...</p>
-            </div>
-            <button class="back-btn" onclick="showScreen('main-menu')">← НАЗАД</button>
-            <button class="menu-btn debug-btn" onclick="loadCharacters()" style="margin-top: 10px;">🔄 ОБНОВИТЬ</button>
+        <div id="output" class="debug-box" style="min-height: 200px;">
+            Жду действий...
         </div>
     </div>
 
     <script>
-        // Инициализация Telegram
         const tg = window.Telegram.WebApp;
+        const output = document.getElementById('output');
+        
+        function log(text, type = 'info') {
+            const color = type === 'success' ? '#4ecdc4' : type === 'error' ? '#ff6b6b' : '#fff';
+            output.innerHTML += `<div style="color: ${color}; margin: 5px 0;">${text}</div>`;
+            console.log(text);
+        }
+        
+        function clearLog() {
+            output.innerHTML = '';
+        }
+        
+        // Проверка Telegram
+        document.getElementById('tg-status').innerHTML = '✅ Telegram Web App доступен';
+        document.getElementById('user-info').innerHTML = `👤 User: ${tg.initDataUnsafe.user?.id || 'Unknown'}`;
+        
         tg.ready();
         tg.expand();
         
-        console.log('Telegram Web App initialized');
-        
-        let selectedClass = null;
-        
-        // Показать экран
-        function showScreen(screenId) {
-            document.getElementById('main-menu').classList.add('hidden');
-            document.getElementById('char-select').classList.add('hidden');
-            document.getElementById('characters-list').classList.add('hidden');
-            document.getElementById(screenId).classList.remove('hidden');
+        // Тест 1: Проверка Telegram API
+        function testTg() {
+            clearLog();
+            log('🔍 ТЕСТ TELEGRAM API');
+            log(`Версия: ${tg.version || 'unknown'}`);
+            log(`Platform: ${tg.platform || 'unknown'}`);
+            log(`Theme: ${tg.colorScheme || 'unknown'}`);
+            log(`User ID: ${tg.initDataUnsafe.user?.id || 'нет'}`);
+            log(`User name: ${tg.initDataUnsafe.user?.first_name || 'нет'}`);
+            
+            if (tg.initDataUnsafe.user?.id) {
+                log('✅ Telegram данные получены', 'success');
+            } else {
+                log('❌ Нет данных пользователя! Игра должна открываться через Telegram', 'error');
+            }
         }
         
-        // Выбор класса
-        function selectClass(className) {
-            document.querySelectorAll('.character-card').forEach(c => 
-                c.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
-            selectedClass = className;
-            document.getElementById('name-input').classList.remove('hidden');
-            showNotification(`Выбран класс: ${className}`);
-        }
-        
-        // Создание персонажа
-        function createCharacter() {
-            const name = document.getElementById('character-name').value.trim();
+        // Тест 2: Отправка в бота
+        function testBot() {
+            clearLog();
+            log('📤 ТЕСТ ОТПРАВКИ В БОТА');
             
-            if (!selectedClass) {
-                showNotification('❌ Выбери класс!');
-                return;
-            }
-            
-            if (!name) {
-                showNotification('❌ Введи имя!');
-                return;
-            }
-            
-            if (name.length < 2 || name.length > 20) {
-                showNotification('❌ Имя от 2 до 20 символов!');
-                return;
-            }
-            
-            // Подготавливаем данные
-            const data = {
-                action: 'create_character',
-                class: selectedClass,
-                name: name
+            const testData = {
+                action: 'test_connection',
+                timestamp: Date.now(),
+                user_id: tg.initDataUnsafe.user?.id
             };
             
-            const jsonData = JSON.stringify(data);
-            console.log('Sending to bot:', jsonData);
+            const jsonData = JSON.stringify(testData);
+            log(`Отправляем: ${jsonData}`);
             
-            // Отправляем в бота
             try {
                 tg.sendData(jsonData);
-                showNotification('✨ Отправляем запрос...');
-                
-                // Показываем, что отправили
-                setTimeout(() => {
-                    showNotification('✅ Запрос отправлен! Проверь консоль бота.');
-                    document.getElementById('character-name').value = '';
-                    document.getElementById('name-input').classList.add('hidden');
-                    showScreen('main-menu');
-                }, 1000);
-            } catch (error) {
-                console.error('Error sending data:', error);
-                showNotification('❌ Ошибка отправки!');
+                log('✅ Данные отправлены!', 'success');
+                log('📺 Проверь консоль бота - там должны быть логи');
+            } catch (e) {
+                log(`❌ Ошибка отправки: ${e.message}`, 'error');
             }
         }
         
-        // Загрузка списка персонажей
-        function loadCharacters() {
-            showScreen('characters-list');
-            document.getElementById('characters-container').innerHTML = '<p>Загрузка...</p>';
+        // Тест 3: Полный тест создания персонажа
+        function testFull() {
+            clearLog();
+            log('⚡ ТЕСТ СОЗДАНИЯ ПЕРСОНАЖА');
             
-            const data = {
-                action: 'get_characters'
+            const testChar = {
+                action: 'create_character',
+                class: 'warrior',
+                name: `Тест${Math.floor(Math.random() * 1000)}`
             };
             
-            console.log('Requesting characters:', JSON.stringify(data));
-            tg.sendData(JSON.stringify(data));
-        }
-        
-        // Тест связи с ботом
-        function testBotConnection() {
-            const data = {
-                action: 'test_connection',
-                message: 'Тестовое сообщение из Mini App'
-            };
+            const jsonData = JSON.stringify(testChar);
+            log(`Данные для отправки: ${jsonData}`);
             
-            console.log('Testing bot connection...');
-            tg.sendData(JSON.stringify(data));
-            showNotification('📤 Тестовый запрос отправлен!');
-        }
-        
-        // Обработка ответов от бота (эту функцию вызовет бот)
-        window.updateCharacters = function(data) {
-            console.log('Received from bot:', data);
-            
-            if (data.error) {
-                document.getElementById('characters-container').innerHTML = 
-                    `<p style="color: #ff6b6b;">Ошибка: ${data.error}</p>`;
-                showNotification(`❌ ${data.error}`);
-                return;
+            try {
+                tg.sendData(jsonData);
+                log('✅ Данные отправлены!', 'success');
+                log('1️⃣ Проверь консоль бота');
+                log('2️⃣ Должно появиться сообщение "ПОЛУЧЕНЫ ДАННЫЕ ИЗ MINI APP"');
+                log('3️⃣ Если не появилось - проблема в боте');
+            } catch (e) {
+                log(`❌ Ошибка: ${e.message}`, 'error');
             }
-            
-            const container = document.getElementById('characters-container');
-            
-            if (!data.characters || data.characters.length === 0) {
-                container.innerHTML = `
-                    <p style="text-align: center; color: rgba(255,255,255,0.5);">
-                        У тебя пока нет героев.<br>
-                        Создай первого в разделе "НОВЫЙ ГЕРОЙ"
-                    </p>
-                `;
-                return;
-            }
-            
-            let html = '';
-            data.characters.forEach(char => {
-                const emoji = char.class === 'warrior' ? '⚔️' : 
-                             char.class === 'mage' ? '🔮' : '🏹';
-                html += `
-                    <div class="character-item">
-                        <div>
-                            <strong>${char.name}</strong> (ур.${char.level})
-                        </div>
-                        <div>${emoji}</div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-            showNotification(`✅ Загружено ${data.characters.length} героев`);
-        };
-        
-        // Функция для показа уведомлений
-        function showNotification(text) {
-            const notif = document.createElement('div');
-            notif.className = 'notification';
-            notif.textContent = text;
-            document.body.appendChild(notif);
-            setTimeout(() => notif.remove(), 2000);
         }
         
-        // Показываем главное меню при загрузке
-        showScreen('main-menu');
-        
-        // Автоматически запрашиваем персонажей
-        setTimeout(loadCharacters, 1000);
-        
-        console.log('Mini App ready');
+        // Автотест при загрузке
+        setTimeout(() => {
+            log('🔄 Автоматическая проверка...');
+            testTg();
+        }, 1000);
     </script>
 </body>
 </html>
