@@ -3,14 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
     <title>Legacy Wars - RPG</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Весь контент остаётся таким же как в предыдущем index.html -->
-    <!-- ... -->
+    <div class="stars" id="stars"></div>
     
+    <div class="container">
+        <!-- Шапка -->
+        <div class="game-header">
+            <h1 class="game-title">⚔️ LEGACY WARS ⚔️</h1>
+            <p class="game-subtitle">Эпическая RPG в Telegram</p>
+        </div>
+
+        <!-- Ресурсы -->
+        <div class="resources-bar">
+            <div class="resource">
+                <div class="resource-icon">🪙</div>
+                <div class="resource-value" id="gold">0</div>
+                <div class="resource-label">Золото</div>
+            </div>
+            <div class="resource">
+                <div class="resource-icon">💎</div>
+                <div class="resource-value" id="gems">0</div>
+                <div class="resource-label">Кристаллы</div>
+            </div>
+            <div class="resource">
+                <div class="resource-icon">⚡</div>
+                <div class="resource-value" id="energy">100</div>
+                <div class="resource-label">Энергия</div>
+            </div>
+        </div>
+
+        <!-- Навигация (с data-tab атрибутами) -->
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-tab="profile" onclick="switchTab('profile')">👤 Профиль</div>
+            <div class="nav-tab" data-tab="battle" onclick="switchTab('battle')">⚔️ Бой</div>
+            <div class="nav-tab" data-tab="inventory" onclick="switchTab('inventory')">🎒 Инвентарь</div>
+            <div class="nav-tab" data-tab="locations" onclick="switchTab('locations')">🗺️ Локации</div>
+            <div class="nav-tab" data-tab="shop" onclick="switchTab('shop')">🏪 Магазин</div>
+        </div>
+
+        <!-- Панель: Профиль -->
+        <div class="panel active" id="panel-profile">
+            <div class="profile-header">
+                <div class="avatar" id="class-avatar">⚔️</div>
+                <div class="profile-info">
+                    <h2 id="player-name">Загрузка...</h2>
+                    <span class="class-badge" id="player-class">Воин</span>
+                    <div style="margin-top: 8px; font-size: 14px; color: var(--text-muted);">
+                        Ур. <span id="player-level">1</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hp-bar-container">
+                <div class="hp-label">
+                    <span>❤️ Здоровье</span>
+                    <span id="hp-text">100/100</span>
+                </div>
+                <div class="hp-bar">
+                    <div class="hp-fill" id="hp-bar" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <div class="exp-bar-container">
+                <div class="exp-label">
+                    <span>⭐ Опыт</span>
+                    <span id="exp-text">0/100</span>
+                </div>
+                <div class="exp-bar">
+                    <div class="exp-fill" id="exp-bar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-icon">⚔️</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Атака</div>
+                        <div class="stat-value" id="stat-atk">10</div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">🛡️</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Защита</div>
+                        <div class="stat-value" id="stat-def">5</div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">💥</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Крит</div>
+                        <div class="stat-value" id="stat-crit">5%</div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Побед</div>
+                        <div class="stat-value" id="stat-wins">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-success" onclick="healInTown()" id="heal-btn">
+                    💚 Лечиться
+                </button>
+                <button class="btn btn-primary" onclick="claimDaily()">
+                    🎁 Ежедневный бонус
+                </button>
+            </div>
+        </div>
+
+        <!-- Панель: Бой -->
+        <div class="panel" id="panel-battle">
+            <div class="battle-arena" id="battle-arena">
+                <div class="fighter player">
+                    <div class="fighter-avatar" id="battle-player-avatar">⚔️</div>
+                    <div class="fighter-name" id="battle-player-name">Ты</div>
+                    <div class="hp-bar" style="margin-top: 10px;">
+                        <div class="hp-fill" id="battle-player-hp" style="width: 100%"></div>
+                    </div>
+                    <div class="fighter-hp" id="battle-player-hp-text">100/100 HP</div>
+                </div>
+
+                <div class="vs-divider">VS</div>
+
+                <div class="fighter enemy" id="enemy-card" style="display: none;">
+                    <div class="fighter-avatar" id="enemy-avatar">🐺</div>
+                    <div class="fighter-name" id="enemy-name">Волк</div>
+                    <div class="hp-bar" style="margin-top: 10px;">
+                        <div class="hp-fill" id="enemy-hp" style="width: 100%; background: linear-gradient(90deg, #ef4444, #f87171);"></div>
+                    </div>
+                    <div class="fighter-hp" id="enemy-hp-text">60/60 HP</div>
+                </div>
+
+                <div id="enemy-selection">
+                    <p style="color: var(--text-muted); margin-bottom: 16px;">Выбери противника в разделе "Локации"</p>
+                    <button class="btn btn-primary" onclick="switchTab('locations')">
+                        🗺️ Выбрать локацию
+                    </button>
+                </div>
+            </div>
+
+            <div class="battle-log" id="battle-log" style="display: none;"></div>
+
+            <div class="action-buttons" id="battle-actions" style="display: none;">
+                <button class="btn btn-danger" onclick="attack()">
+                    ⚔️ Атаковать
+                </button>
+                <button class="btn btn-secondary" onclick="usePotion()">
+                    🧪 Зелье
+                </button>
+                <button class="btn btn-secondary" onclick="flee()">
+                    🏃 Бежать
+                </button>
+            </div>
+        </div>
+
+        <!-- Панель: Инвентарь -->
+        <div class="panel" id="panel-inventory">
+            <h3 style="margin-bottom: 16px;">🎒 Инвентарь</h3>
+            <div class="inventory-grid" id="inventory-grid">
+                <!-- Генерируется JS -->
+            </div>
+            
+            <div class="mt-20" style="background: var(--bg-card); padding: 16px; border-radius: 12px;">
+                <h4 style="margin-bottom: 12px;">⚔️ Экипировка</h4>
+                <div id="equipment-slots">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <div class="inventory-slot" style="width: 80px; height: 80px;" id="eq-weapon">
+                            <span style="font-size: 24px;">🗡️</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">Оружие</span>
+                        </div>
+                        <div class="inventory-slot" style="width: 80px; height: 80px;" id="eq-armor">
+                            <span style="font-size: 24px;">👕</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">Броня</span>
+                        </div>
+                        <div class="inventory-slot" style="width: 80px; height: 80px;" id="eq-accessory">
+                            <span style="font-size: 24px;">💍</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">Аксессуар</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Панель: Локации -->
+        <div class="panel" id="panel-locations">
+            <h3 style="margin-bottom: 16px;">🗺️ Локации</h3>
+            <div class="location-list" id="location-list">
+                <!-- Генерируется JS -->
+            </div>
+        </div>
+
+        <!-- Панель: Магазин -->
+        <div class="panel" id="panel-shop">
+            <div class="shop-tabs">
+                <div class="shop-tab active" data-category="weapons" onclick="switchShopTab('weapons')">⚔️ Оружие</div>
+                <div class="shop-tab" data-category="armor" onclick="switchShopTab('armor')">🛡️ Броня</div>
+                <div class="shop-tab" data-category="consumables" onclick="switchShopTab('consumables')">💊 Зелья</div>
+            </div>
+            <div class="shop-items" id="shop-items">
+                <!-- Генерируется JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modal-title">Заголовок</div>
+            <div class="modal-body" id="modal-body">Содержимое</div>
+            <div class="modal-actions" id="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+                <button class="btn btn-primary" onclick="confirmModal()">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+
     <script src="game.js"></script>
 </body>
 </html>
