@@ -2,130 +2,1483 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legacy Wars - Отладка</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <title>Legacy Wars - RPG</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: monospace; background: #0a0f1e; color: white; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        h1 { color: #ffd700; text-align: center; }
-        button { padding: 15px; margin: 5px; background: #4ecdc4; color: white; border: none; border-radius: 10px; cursor: pointer; width: 100%; }
-        .debug-box { background: #1a1f35; padding: 15px; border-radius: 10px; margin: 10px 0; font-size: 12px; }
-        .success { color: #4ecdc4; }
-        .error { color: #ff6b6b; }
-        .hidden { display: none; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-panel: #151520;
+            --bg-card: #1e1e2e;
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --accent-gold: #fbbf24;
+            --accent-red: #ef4444;
+            --accent-green: #22c55e;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Фон со звёздами */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        /* Шапка */
+        .game-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-top: 10px;
+        }
+
+        .game-title {
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .game-subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* Навигация */
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .nav-tab {
+            flex: 1;
+            min-width: 70px;
+            padding: 12px 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Панели */
+        .panel {
+            background: var(--bg-panel);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Профиль */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            border: 3px solid var(--accent-gold);
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+        }
+
+        .profile-info h2 {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .profile-info .class-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--bg-card);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--accent-gold);
+            border: 1px solid var(--accent-gold);
+        }
+
+        /* Ресурсы */
+        .resources-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .resource {
+            flex: 1;
+            background: var(--bg-card);
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .resource-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .resource-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        .resource-label {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Характеристики */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .stat-item {
+            background: var(--bg-card);
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .stat-info {
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        /* HP Бар */
+        .hp-bar-container {
+            background: var(--bg-card);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .hp-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .hp-bar {
+            height: 12px;
+            background: rgba(239, 68, 68, 0.2);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-red), #f87171);
+            border-radius: 6px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        /* EXP Бар */
+        .exp-bar-container {
+            background: var(--bg-card);
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .exp-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .exp-bar {
+            height: 8px;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .exp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #8b5cf6);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Кнопки действий */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--accent-green), #16a34a);
+            color: white;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--accent-red), #dc2626);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Боевая панель */
+        .battle-arena {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .vs-divider {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--accent-gold);
+            margin: 20px 0;
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+        }
+
+        .fighter {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 16px;
+            border: 2px solid var(--border);
+            position: relative;
+        }
+
+        .fighter.player {
+            border-color: var(--primary);
+        }
+
+        .fighter.enemy {
+            border-color: var(--accent-red);
+        }
+
+        .fighter-avatar {
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+
+        .fighter-name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .fighter-hp {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Лог боя */
+        .battle-log {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 20px 0;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .log-damage {
+            color: var(--accent-red);
+        }
+
+        .log-heal {
+            color: var(--accent-green);
+        }
+
+        .log-crit {
+            color: var(--accent-gold);
+            font-weight: bold;
+        }
+
+        /* Инвентарь */
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .inventory-slot {
+            aspect-ratio: 1;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .inventory-slot:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .inventory-slot .item-icon {
+            font-size: 28px;
+            margin-bottom: 4px;
+        }
+
+        .inventory-slot .item-qty {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            background: var(--primary);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 20px;
+        }
+
+        .inventory-slot.empty {
+            opacity: 0.3;
+        }
+
+        /* Локации */
+        .location-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .location-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .location-card:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .location-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .location-icon {
+            font-size: 40px;
+        }
+
+        .location-info {
+            flex: 1;
+        }
+
+        .location-name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .location-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .location-level {
+            background: var(--bg-dark);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* Магазин */
+        .shop-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .shop-tab {
+            flex: 1;
+            padding: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .shop-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .shop-items {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .shop-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .shop-item-icon {
+            font-size: 32px;
+            width: 50px;
+            height: 50px;
+            background: var(--bg-dark);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .shop-item-info {
+            flex: 1;
+        }
+
+        .shop-item-name {
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .shop-item-stats {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .shop-item-price {
+            text-align: right;
+        }
+
+        .price-gold {
+            color: var(--accent-gold);
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        /* Модальные окна */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-panel);
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid var(--border);
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-actions .btn {
+            flex: 1;
+        }
+
+        /* Анимации урона */
+        .damage-popup {
+            position: absolute;
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--accent-red);
+            animation: damageFloat 1s ease-out forwards;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+        }
+
+        @keyframes damageFloat {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+        }
+
+        /* Загрузка */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Утилиты */
+        .text-center { text-align: center; }
+        .mt-20 { margin-top: 20px; }
+        .mb-20 { margin-bottom: 20px; }
+        .hidden { display: none !important; }
+
+        /* Адаптивность */
+        @media (max-width: 380px) {
+            .inventory-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="stars" id="stars"></div>
+    
     <div class="container">
-        <h1>⚔️ LEGACY WARS - ОТЛАДКА ⚔️</h1>
-        
-        <div class="debug-box">
-            <div id="tg-status">🔄 Проверка Telegram...</div>
-            <div id="user-info">👤 Загрузка...</div>
+        <!-- Шапка -->
+        <div class="game-header">
+            <h1 class="game-title">⚔️ LEGACY WARS ⚔️</h1>
+            <p class="game-subtitle">Эпическая RPG в Telegram</p>
         </div>
-        
-        <button onclick="testTg()">📤 1. ТЕСТ TELEGRAM API</button>
-        <button onclick="testBot()">🤖 2. ТЕСТ ОТПРАВКИ В БОТА</button>
-        <button onclick="testFull()">⚡ 3. ТЕСТ СОЗДАНИЯ ПЕРСОНАЖА</button>
-        
-        <div id="output" class="debug-box" style="min-height: 200px;">
-            Жду действий...
+
+        <!-- Ресурсы -->
+        <div class="resources-bar">
+            <div class="resource">
+                <div class="resource-icon">🪙</div>
+                <div class="resource-value" id="gold">0</div>
+                <div class="resource-label">Золото</div>
+            </div>
+            <div class="resource">
+                <div class="resource-icon">💎</div>
+                <div class="resource-value" id="gems">0</div>
+                <div class="resource-label">Кристаллы</div>
+            </div>
+            <div class="resource">
+                <div class="resource-icon">⚡</div>
+                <div class="resource-value" id="energy">100</div>
+                <div class="resource-label">Энергия</div>
+            </div>
+        </div>
+
+        <!-- Навигация -->
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="switchTab('profile')">👤 Профиль</div>
+            <div class="nav-tab" onclick="switchTab('battle')">⚔️ Бой</div>
+            <div class="nav-tab" onclick="switchTab('inventory')">🎒 Инвентарь</div>
+            <div class="nav-tab" onclick="switchTab('locations')">🗺️ Локации</div>
+            <div class="nav-tab" onclick="switchTab('shop')">🏪 Магазин</div>
+        </div>
+
+        <!-- Панель: Профиль -->
+        <div class="panel active" id="panel-profile">
+            <div class="profile-header">
+                <div class="avatar" id="class-avatar">⚔️</div>
+                <div class="profile-info">
+                    <h2 id="player-name">Загрузка...</h2>
+                    <span class="class-badge" id="player-class">Воин</span>
+                    <div style="margin-top: 8px; font-size: 14px; color: var(--text-muted);">
+                        Ур. <span id="player-level">1</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hp-bar-container">
+                <div class="hp-label">
+                    <span>❤️ Здоровье</span>
+                    <span id="hp-text">100/100</span>
+                </div>
+                <div class="hp-bar">
+                    <div class="hp-fill" id="hp-bar" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <div class="exp-bar-container">
+                <div class="exp-label">
+                    <span>⭐ Опыт</span>
+                    <span id="exp-text">0/100</span>
+                </div>
+                <div class="exp-bar">
+                    <div class="exp-fill" id="exp-bar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-icon">⚔️</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Атака</div>
+                        <div class="stat-value" id="stat-atk">10</div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">🛡️</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Защита</div>
+                        <div class="stat-value" id="stat-def">5</div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">💥</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Крит</div>
+                        <div class="stat-value" id="stat-crit">5%</div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Побед</div>
+                        <div class="stat-value" id="stat-wins">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-success" onclick="healInTown()" id="heal-btn">
+                    💚 Лечиться
+                </button>
+                <button class="btn btn-primary" onclick="claimDaily()">
+                    🎁 Ежедневный бонус
+                </button>
+            </div>
+        </div>
+
+        <!-- Панель: Бой -->
+        <div class="panel" id="panel-battle">
+            <div class="battle-arena" id="battle-arena">
+                <div class="fighter player">
+                    <div class="fighter-avatar" id="battle-player-avatar">⚔️</div>
+                    <div class="fighter-name" id="battle-player-name">Ты</div>
+                    <div class="hp-bar" style="margin-top: 10px;">
+                        <div class="hp-fill" id="battle-player-hp" style="width: 100%"></div>
+                    </div>
+                    <div class="fighter-hp" id="battle-player-hp-text">100/100 HP</div>
+                </div>
+
+                <div class="vs-divider">VS</div>
+
+                <div class="fighter enemy" id="enemy-card" style="display: none;">
+                    <div class="fighter-avatar" id="enemy-avatar">🐺</div>
+                    <div class="fighter-name" id="enemy-name">Волк</div>
+                    <div class="hp-bar" style="margin-top: 10px;">
+                        <div class="hp-fill" id="enemy-hp" style="width: 100%; background: linear-gradient(90deg, #ef4444, #f87171);"></div>
+                    </div>
+                    <div class="fighter-hp" id="enemy-hp-text">60/60 HP</div>
+                </div>
+
+                <div id="enemy-selection">
+                    <p style="color: var(--text-muted); margin-bottom: 16px;">Выбери противника в разделе "Локации"</p>
+                    <button class="btn btn-primary" onclick="switchTab('locations')">
+                        🗺️ Выбрать локацию
+                    </button>
+                </div>
+            </div>
+
+            <div class="battle-log" id="battle-log" style="display: none;"></div>
+
+            <div class="action-buttons" id="battle-actions" style="display: none;">
+                <button class="btn btn-danger" onclick="attack()">
+                    ⚔️ Атаковать
+                </button>
+                <button class="btn btn-secondary" onclick="usePotion()">
+                    🧪 Зелье
+                </button>
+                <button class="btn btn-secondary" onclick="flee()">
+                    🏃 Бежать
+                </button>
+            </div>
+        </div>
+
+        <!-- Панель: Инвентарь -->
+        <div class="panel" id="panel-inventory">
+            <h3 style="margin-bottom: 16px;">🎒 Инвентарь</h3>
+            <div class="inventory-grid" id="inventory-grid">
+                <!-- Генерируется JS -->
+            </div>
+            
+            <div class="mt-20" style="background: var(--bg-card); padding: 16px; border-radius: 12px;">
+                <h4 style="margin-bottom: 12px;">⚔️ Экипировка</h4>
+                <div id="equipment-slots">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <div class="inventory-slot" style="width: 80px; height: 80px;" id="eq-weapon">
+                            <span style="font-size: 24px;">🗡️</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">Оружие</span>
+                        </div>
+                        <div class="inventory-slot" style="width: 80px; height: 80px;" id="eq-armor">
+                            <span style="font-size: 24px;">👕</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">Броня</span>
+                        </div>
+                        <div class="inventory-slot" style="width: 80px; height: 80px;" id="eq-accessory">
+                            <span style="font-size: 24px;">💍</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">Аксессуар</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Панель: Локации -->
+        <div class="panel" id="panel-locations">
+            <h3 style="margin-bottom: 16px;">🗺️ Локации</h3>
+            <div class="location-list" id="location-list">
+                <!-- Генерируется JS -->
+            </div>
+        </div>
+
+        <!-- Панель: Магазин -->
+        <div class="panel" id="panel-shop">
+            <div class="shop-tabs">
+                <div class="shop-tab active" onclick="switchShopTab('weapons')">⚔️ Оружие</div>
+                <div class="shop-tab" onclick="switchShopTab('armor')">🛡️ Броня</div>
+                <div class="shop-tab" onclick="switchShopTab('consumables')">💊 Зелья</div>
+            </div>
+            <div class="shop-items" id="shop-items">
+                <!-- Генерируется JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modal-title">Заголовок</div>
+            <div class="modal-body" id="modal-body">Содержимое</div>
+            <div class="modal-actions" id="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+                <button class="btn btn-primary" onclick="confirmModal()">Подтвердить</button>
+            </div>
         </div>
     </div>
 
     <script>
+        // Инициализация Telegram WebApp
         const tg = window.Telegram.WebApp;
-        const output = document.getElementById('output');
-        
-        function log(text, type = 'info') {
-            const color = type === 'success' ? '#4ecdc4' : type === 'error' ? '#ff6b6b' : '#fff';
-            output.innerHTML += `<div style="color: ${color}; margin: 5px 0;">${text}</div>`;
-            console.log(text);
-        }
-        
-        function clearLog() {
-            output.innerHTML = '';
-        }
-        
-        // Проверка Telegram
-        document.getElementById('tg-status').innerHTML = '✅ Telegram Web App доступен';
-        document.getElementById('user-info').innerHTML = `👤 User: ${tg.initDataUnsafe.user?.id || 'Unknown'}`;
-        
-        tg.ready();
         tg.expand();
+        tg.ready();
         
-        // Тест 1: Проверка Telegram API
-        function testTg() {
-            clearLog();
-            log('🔍 ТЕСТ TELEGRAM API');
-            log(`Версия: ${tg.version || 'unknown'}`);
-            log(`Platform: ${tg.platform || 'unknown'}`);
-            log(`Theme: ${tg.colorScheme || 'unknown'}`);
-            log(`User ID: ${tg.initDataUnsafe.user?.id || 'нет'}`);
-            log(`User name: ${tg.initDataUnsafe.user?.first_name || 'нет'}`);
+        // Устанавливаем цвета под тему Telegram
+        document.documentElement.style.setProperty('--bg-dark', tg.backgroundColor || '#0a0a0f');
+        document.documentElement.style.setProperty('--text', tg.textColor || '#f1f5f9');
+
+        // Глобальные переменные
+        let playerData = null;
+        let currentEnemy = null;
+        let battleInterval = null;
+        let inventoryData = [];
+        let currentLocation = 'town';
+
+        // Инициализация звёзд
+        function initStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Переключение вкладок
+        function switchTab(tabName) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             
-            if (tg.initDataUnsafe.user?.id) {
-                log('✅ Telegram данные получены', 'success');
+            event.target.classList.add('active');
+            document.getElementById(`panel-${tabName}`).classList.add('active');
+            
+            if (tabName === 'inventory') loadInventory();
+            if (tabName === 'locations') loadLocations();
+            if (tabName === 'shop') loadShop('weapons');
+        }
+
+        // Загрузка профиля
+        async function loadProfile() {
+            try {
+                // Отправляем запрос в бот
+                tg.sendData(JSON.stringify({action: 'get_profile'}));
+                
+                // Имитация загрузки (в реальности данные придут через web_app_data)
+                setTimeout(() => {
+                    // Тестовые данные для демонстрации UI
+                    playerData = {
+                        name: 'Артур',
+                        class: 'warrior',
+                        level: 5,
+                        exp: 250,
+                        exp_max: 500,
+                        hp: 80,
+                        hp_max: 150,
+                        atk: 25,
+                        def: 15,
+                        crit: 8,
+                        gold: 1250,
+                        gems: 5,
+                        wins: 12,
+                        location: 'forest'
+                    };
+                    updateProfileUI();
+                }, 500);
+            } catch (e) {
+                console.error('Error loading profile:', e);
+            }
+        }
+
+        // Обновление UI профиля
+        function updateProfileUI() {
+            if (!playerData) return;
+            
+            const classEmojis = {warrior: '⚔️', mage: '🔮', rogue: '🗡️', paladin: '🛡️'};
+            const classNames = {warrior: 'Воин', mage: 'Маг', rogue: 'Разбойник', paladin: 'Паладин'};
+            
+            document.getElementById('class-avatar').textContent = classEmojis[playerData.class] || '⚔️';
+            document.getElementById('player-name').textContent = playerData.name;
+            document.getElementById('player-class').textContent = classNames[playerData.class] || playerData.class;
+            document.getElementById('player-level').textContent = playerData.level;
+            document.getElementById('gold').textContent = playerData.gold;
+            document.getElementById('gems').textContent = playerData.gems;
+            
+            // HP
+            const hpPercent = (playerData.hp / playerData.hp_max) * 100;
+            document.getElementById('hp-text').textContent = `${playerData.hp}/${playerData.hp_max}`;
+            document.getElementById('hp-bar').style.width = hpPercent + '%';
+            
+            // EXP
+            const expPercent = (playerData.exp / playerData.exp_max) * 100;
+            document.getElementById('exp-text').textContent = `${playerData.exp}/${playerData.exp_max}`;
+            document.getElementById('exp-bar').style.width = expPercent + '%';
+            
+            // Stats
+            document.getElementById('stat-atk').textContent = playerData.atk;
+            document.getElementById('stat-def').textContent = playerData.def;
+            document.getElementById('stat-crit').textContent = playerData.crit + '%';
+            document.getElementById('stat-wins').textContent = playerData.wins;
+            
+            // Battle stats
+            document.getElementById('battle-player-avatar').textContent = classEmojis[playerData.class] || '⚔️';
+            document.getElementById('battle-player-name').textContent = playerData.name;
+            updateBattleHP();
+            
+            // Heal button visibility
+            const healBtn = document.getElementById('heal-btn');
+            if (playerData.location === 'town') {
+                healBtn.style.display = 'flex';
             } else {
-                log('❌ Нет данных пользователя! Игра должна открываться через Telegram', 'error');
+                healBtn.style.display = 'none';
             }
         }
-        
-        // Тест 2: Отправка в бота
-        function testBot() {
-            clearLog();
-            log('📤 ТЕСТ ОТПРАВКИ В БОТА');
+
+        // Лечение в городе
+        function healInTown() {
+            if (!playerData || playerData.location !== 'town') {
+                showModal('Ошибка', 'Лечение доступно только в деревне!', [{text: 'OK', action: closeModal}]);
+                return;
+            }
             
-            const testData = {
-                action: 'test_connection',
-                timestamp: Date.now(),
-                user_id: tg.initDataUnsafe.user?.id
+            tg.sendData(JSON.stringify({action: 'heal'}));
+            playerData.hp = playerData.hp_max;
+            updateProfileUI();
+            showModal('💚 Восстановление', 'Здоровье полностью восстановлено!', [{text: 'OK', action: closeModal}]);
+        }
+
+        // Ежедневный бонус
+        function claimDaily() {
+            tg.sendData(JSON.stringify({action: 'daily_bonus'}));
+            showModal('🎁 Бонус получен!', 'Вы получили 100 золота и 50 опыта!', [{text: 'Круто!', action: closeModal}]);
+        }
+
+        // Инвентарь
+        function loadInventory() {
+            const grid = document.getElementById('inventory-grid');
+            grid.innerHTML = '';
+            
+            // Тестовые данные
+            const items = [
+                {id: 'sword_iron', icon: '⚔️', qty: 1},
+                {id: 'potion_small', icon: '🧪', qty: 5},
+                {id: 'armor_leather', icon: '🧥', qty: 1},
+                {id: 'gold_ore', icon: '⛏️', qty: 12},
+            ];
+            
+            // Пустые слоты
+            for (let i = 0; i < 20; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'inventory-slot' + (i >= items.length ? ' empty' : '');
+                
+                if (i < items.length) {
+                    slot.innerHTML = `
+                        <div class="item-icon">${items[i].icon}</div>
+                        <div class="item-qty">${items[i].qty}</div>
+                    `;
+                    slot.onclick = () => useItem(items[i].id);
+                } else {
+                    slot.innerHTML = '<div style="color: var(--text-muted); font-size: 20px;">+</div>';
+                }
+                
+                grid.appendChild(slot);
+            }
+        }
+
+        // Использование предмета
+        function useItem(itemId) {
+            showModal('Использовать предмет', `Использовать ${itemId}?`, [
+                {text: 'Отмена', action: closeModal},
+                {text: 'Использовать', action: () => {
+                    tg.sendData(JSON.stringify({action: 'use_item', item_id: itemId}));
+                    closeModal();
+                }}
+            ]);
+        }
+
+        // Локации
+        function loadLocations() {
+            const list = document.getElementById('location-list');
+            list.innerHTML = '';
+            
+            const locations = [
+                {id: 'town', name: '🏘️ Деревня', desc: 'Безопасная зона', level: 1, safe: true},
+                {id: 'forest', name: '🌲 Тёмный лес', desc: 'Крысы и волки', level: 1, safe: false},
+                {id: 'cave', name: '🕳️ Пещеры', desc: 'Гоблины и змеи', level: 5, safe: false},
+                {id: 'mountain', name: '⛰️ Горы', desc: 'Орки и пауки', level: 10, safe: false},
+                {id: 'dungeon', name: '🏰 Подземелье', desc: 'Драконы и демоны', level: 15, safe: false},
+            ];
+            
+            locations.forEach(loc => {
+                const locked = playerData && playerData.level < loc.level;
+                const card = document.createElement('div');
+                card.className = 'location-card' + (locked ? ' locked' : '');
+                card.innerHTML = `
+                    <div class="location-icon">${loc.name.split(' ')[0]}</div>
+                    <div class="location-info">
+                        <div class="location-name">${loc.name.split(' ').slice(1).join(' ')}</div>
+                        <div class="location-desc">${loc.desc}</div>
+                    </div>
+                    <div class="location-level">${loc.safe ? '✅' : 'Ур. ' + loc.level}</div>
+                `;
+                
+                if (!locked) {
+                    card.onclick = () => travelTo(loc);
+                }
+                
+                list.appendChild(card);
+            });
+        }
+
+        // Путешествие
+        function travelTo(location) {
+            if (location.safe) {
+                currentLocation = location.id;
+                tg.sendData(JSON.stringify({action: 'travel', location: location.id}));
+                showModal('🗺️ Перемещение', `Вы прибыли в ${location.name}`, [{text: 'OK', action: () => {
+                    closeModal();
+                    switchTab('battle');
+                }}]);
+            } else {
+                showModal('⚔️ Войти в локацию?', `${location.name}\n${location.desc}\n\nВнимание: здесь обитают монстры!`, [
+                    {text: 'Отмена', action: closeModal},
+                    {text: 'Войти', action: () => {
+                        currentLocation = location.id;
+                        tg.sendData(JSON.stringify({action: 'travel', location: location.id}));
+                        closeModal();
+                        startBattle(location);
+                    }}
+                ]);
+            }
+        }
+
+        // Начало боя
+        function startBattle(location) {
+            const enemies = {
+                forest: [{name: '🐀 Крыса', hp: 30, maxHp: 30}, {name: '🐺 Волк', hp: 60, maxHp: 60}],
+                cave: [{name: '🐍 Змей', hp: 80, maxHp: 80}, {name: '👺 Гоблин', hp: 100, maxHp: 100}],
+                mountain: [{name: '👹 Орк', hp: 200, maxHp: 200}, {name: '🕷️ Паук', hp: 180, maxHp: 180}],
+                dungeon: [{name: '🐉 Дракон', hp: 500, maxHp: 500}, {name: '👿 Демон', hp: 800, maxHp: 800}]
             };
             
-            const jsonData = JSON.stringify(testData);
-            log(`Отправляем: ${jsonData}`);
+            const locationEnemies = enemies[location.id] || enemies.forest;
+            currentEnemy = {...locationEnemies[Math.floor(Math.random() * locationEnemies.length)]};
             
-            try {
-                tg.sendData(jsonData);
-                log('✅ Данные отправлены!', 'success');
-                log('📺 Проверь консоль бота - там должны быть логи');
-            } catch (e) {
-                log(`❌ Ошибка отправки: ${e.message}`, 'error');
-            }
+            document.getElementById('enemy-selection').style.display = 'none';
+            document.getElementById('enemy-card').style.display = 'block';
+            document.getElementById('battle-log').style.display = 'block';
+            document.getElementById('battle-actions').style.display = 'grid';
+            
+            document.getElementById('enemy-avatar').textContent = currentEnemy.name.split(' ')[0];
+            document.getElementById('enemy-name').textContent = currentEnemy.name.split(' ').slice(1).join(' ');
+            updateEnemyHP();
+            
+            addBattleLog(`⚔️ Бой начался! Противник: ${currentEnemy.name}`, 'system');
         }
-        
-        // Тест 3: Полный тест создания персонажа
-        function testFull() {
-            clearLog();
-            log('⚡ ТЕСТ СОЗДАНИЯ ПЕРСОНАЖА');
+
+        // Атака
+        function attack() {
+            if (!currentEnemy) return;
             
-            const testChar = {
-                action: 'create_character',
-                class: 'warrior',
-                name: `Тест${Math.floor(Math.random() * 1000)}`
+            // Урон игрока
+            const damage = Math.floor(playerData.atk * (0.8 + Math.random() * 0.4));
+            const isCrit = Math.random() * 100 < playerData.crit;
+            const finalDamage = isCrit ? Math.floor(damage * 1.5) : damage;
+            
+            currentEnemy.hp = Math.max(0, currentEnemy.hp - finalDamage);
+            updateEnemyHP();
+            
+            addBattleLog(`🗡️ Ты нанёс ${finalDamage} урона${isCrit ? ' 💥 КРИТ!' : ''}`, 'damage');
+            showDamage(finalDamage, 'enemy');
+            
+            if (currentEnemy.hp <= 0) {
+                winBattle();
+                return;
+            }
+            
+            // Ответный удар
+            setTimeout(() => {
+                const enemyDamage = Math.floor(10 * (0.8 + Math.random() * 0.4));
+                playerData.hp = Math.max(0, playerData.hp - enemyDamage);
+                updateProfileUI();
+                updateBattleHP();
+                
+                addBattleLog(`💔 ${currentEnemy.name} нанёс ${enemyDamage} урона`, 'enemy');
+                
+                if (playerData.hp <= 0) {
+                    loseBattle();
+                }
+            }, 500);
+        }
+
+        // Использование зелья
+        function usePotion() {
+            // Проверка наличия зелья
+            addBattleLog('🧪 Использовано зелье! +30 HP', 'heal');
+            playerData.hp = Math.min(playerData.hp_max, playerData.hp + 30);
+            updateProfileUI();
+            updateBattleHP();
+        }
+
+        // Бегство
+        function flee() {
+            addBattleLog('🏃 Ты сбежал из боя!', 'system');
+            setTimeout(() => {
+                resetBattle();
+                switchTab('locations');
+            }, 1000);
+        }
+
+        // Победа
+        function winBattle() {
+            const expGain = 50;
+            const goldGain = 25;
+            
+            addBattleLog(`🏆 ПОБЕДА! +${expGain} XP, +${goldGain} 🪙`, 'system');
+            
+            playerData.exp += expGain;
+            playerData.gold += goldGain;
+            playerData.wins++;
+            
+            if (playerData.exp >= playerData.exp_max) {
+                levelUp();
+            }
+            
+            updateProfileUI();
+            
+            setTimeout(() => {
+                showModal('🏆 Победа!', `Получено:\n⭐ ${expGain} опыта\n🪙 ${goldGain} золота`, [
+                    {text: 'Продолжить', action: () => {
+                        closeModal();
+                        resetBattle();
+                    }}
+                ]);
+            }, 500);
+        }
+
+        // Поражение
+        function loseBattle() {
+            addBattleLog('💀 Ты проиграл...', 'system');
+            
+            setTimeout(() => {
+                showModal('💀 Поражение', 'Ты потерял сознание. Тебя отнесли в деревню.', [
+                    {text: 'Продолжить', action: () => {
+                        playerData.hp = 1;
+                        playerData.location = 'town';
+                        updateProfileUI();
+                        closeModal();
+                        resetBattle();
+                        switchTab('profile');
+                    }}
+                ]);
+            }, 500);
+        }
+
+        // Повышение уровня
+        function levelUp() {
+            playerData.level++;
+            playerData.exp = 0;
+            playerData.exp_max = Math.floor(playerData.exp_max * 1.5);
+            playerData.hp_max += 10;
+            playerData.atk += 2;
+            playerData.def += 1;
+            playerData.hp = playerData.hp_max;
+            
+            addBattleLog(`🎉 НОВЫЙ УРОВЕНЬ ${playerData.level}!`, 'crit');
+        }
+
+        // Сброс боя
+        function resetBattle() {
+            currentEnemy = null;
+            document.getElementById('enemy-selection').style.display = 'block';
+            document.getElementById('enemy-card').style.display = 'none';
+            document.getElementById('battle-log').style.display = 'none';
+            document.getElementById('battle-actions').style.display = 'none';
+            document.getElementById('battle-log').innerHTML = '';
+        }
+
+        // Обновление HP в бою
+        function updateBattleHP() {
+            if (!playerData) return;
+            const percent = (playerData.hp / playerData.hp_max) * 100;
+            document.getElementById('battle-player-hp').style.width = percent + '%';
+            document.getElementById('battle-player-hp-text').textContent = `${playerData.hp}/${playerData.hp_max} HP`;
+        }
+
+        function updateEnemyHP() {
+            if (!currentEnemy) return;
+            const percent = (currentEnemy.hp / currentEnemy.maxHp) * 100;
+            document.getElementById('enemy-hp').style.width = percent + '%';
+            document.getElementById('enemy-hp-text').textContent = `${currentEnemy.hp}/${currentEnemy.maxHp} HP`;
+        }
+
+        // Лог боя
+        function addBattleLog(text, type) {
+            const log = document.getElementById('battle-log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = text;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // Анимация урона
+        function showDamage(amount, target) {
+            const popup = document.createElement('div');
+            popup.className = 'damage-popup';
+            popup.textContent = amount;
+            popup.style.left = '50%';
+            popup.style.top = target === 'enemy' ? '30%' : '60%';
+            document.getElementById('battle-arena').appendChild(popup);
+            setTimeout(() => popup.remove(), 1000);
+        }
+
+        // Магазин
+        function switchShopTab(category) {
+            document.querySelectorAll('.shop-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            loadShop(category);
+        }
+
+        function loadShop(category) {
+            const container = document.getElementById('shop-items');
+            container.innerHTML = '';
+            
+            const items = {
+                weapons: [
+                    {icon: '🗡️', name: 'Железный меч', stats: 'ATK +12', price: 200},
+                    {icon: '⚔️', name: 'Стальной меч', stats: 'ATK +25', price: 800},
+                    {icon: '🔮', name: 'Посох мага', stats: 'ATK +22', price: 900},
+                ],
+                armor: [
+                    {icon: '🧥', name: 'Кожаная броня', stats: 'DEF +8', price: 180},
+                    {icon: '⛓️', name: 'Кольчуга', stats: 'DEF +15', price: 600},
+                    {icon: '🛡️', name: 'Латы', stats: 'DEF +25', price: 2000},
+                ],
+                consumables: [
+                    {icon: '🧪', name: 'Малое зелье', stats: 'Heal +30', price: 25},
+                    {icon: '🧪', name: 'Среднее зелье', stats: 'Heal +80', price: 80},
+                    {icon: '🧪', name: 'Большое зелье', stats: 'Heal +200', price: 250},
+                ]
             };
             
-            const jsonData = JSON.stringify(testChar);
-            log(`Данные для отправки: ${jsonData}`);
-            
-            try {
-                tg.sendData(jsonData);
-                log('✅ Данные отправлены!', 'success');
-                log('1️⃣ Проверь консоль бота');
-                log('2️⃣ Должно появиться сообщение "ПОЛУЧЕНЫ ДАННЫЕ ИЗ MINI APP"');
-                log('3️⃣ Если не появилось - проблема в боте');
-            } catch (e) {
-                log(`❌ Ошибка: ${e.message}`, 'error');
-            }
+            (items[category] || []).forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'shop-item';
+                div.innerHTML = `
+                    <div class="shop-item-icon">${item.icon}</div>
+                    <div class="shop-item-info">
+                        <div class="shop-item-name">${item.name}</div>
+                        <div class="shop-item-stats">${item.stats}</div>
+                    </div>
+                    <div class="shop-item-price">
+                        <div class="price-gold">${item.price} 🪙</div>
+                    </div>
+                `;
+                div.onclick = () => buyItem(item);
+                container.appendChild(div);
+            });
         }
-        
-        // Автотест при загрузке
-        setTimeout(() => {
-            log('🔄 Автоматическая проверка...');
-            testTg();
-        }, 1000);
+
+        // Покупка
+        function buyItem(item) {
+            if (playerData.gold < item.price) {
+                showModal('❌ Недостаточно золота', `Нужно: ${item.price} 🪙\nУ тебя: ${playerData.gold} 🪙`, [
+                    {text: 'Жаль', action: closeModal}
+                ]);
+                return;
+            }
+            
+            showModal('Купить предмет?', `${item.name}\nЦена: ${item.price} 🪙`, [
+                {text: 'Отмена', action: closeModal},
+                {text: 'Купить', action: () => {
+                    playerData.gold -= item.price;
+                    updateProfileUI();
+                    tg.sendData(JSON.stringify({action: 'buy', item: item}));
+                    closeModal();
+                    showModal('✅ Куплено!', `${item.name} добавлен в инвентарь`, [{text: 'OK', action: closeModal}]);
+                }}
+            ]);
+        }
+
+        // Модальные окна
+        function showModal(title, body, buttons) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').innerHTML = body;
+            
+            const actions = document.getElementById('modal-actions');
+            actions.innerHTML = '';
+            
+            buttons.forEach(btn => {
+                const button = document.createElement('button');
+                button.className = 'btn ' + (btn.primary ? 'btn-primary' : 'btn-secondary');
+                button.textContent = btn.text;
+                button.onclick = btn.action;
+                actions.appendChild(button);
+            });
+            
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function confirmModal() {
+            closeModal();
+        }
+
+        // Инициализация
+        window.onload = () => {
+            initStars();
+            loadProfile();
+        };
+
+        // Обработка данных от бота (если бот отправляет данные через MainButton)
+        tg.onEvent('webAppData', (data) => {
+            console.log('Received from bot:', data);
+            // Обработка ответов от бота
+        });
     </script>
 </body>
 </html>
