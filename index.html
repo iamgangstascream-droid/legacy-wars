@@ -171,18 +171,20 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             width: 100%;
-            max-width: 400px;
-            margin-bottom: 30px;
+            max-width: 500px;
+            margin-bottom: 20px;
         }
 
         .class-card {
             background: rgba(255,255,255,0.1);
             border: 2px solid rgba(255,255,255,0.2);
             border-radius: 15px;
-            padding: 20px;
+            padding: 15px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
         }
 
         .class-card:hover {
@@ -196,20 +198,65 @@
             box-shadow: 0 0 20px rgba(243, 156, 18, 0.5);
         }
 
+        .class-preview {
+            width: 100%;
+            height: 120px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            object-fit: cover;
+            background: rgba(0,0,0,0.3);
+        }
+
         .class-icon {
-            font-size: 64px;
+            font-size: 48px;
             margin-bottom: 10px;
         }
 
         .class-name {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             margin-bottom: 5px;
         }
 
         .class-stats {
-            font-size: 12px;
+            font-size: 11px;
             color: #aaa;
+        }
+
+        /* Character Preview Area */
+        .character-preview-area {
+            width: 100%;
+            max-width: 400px;
+            height: 450px;
+            margin: 20px 0;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            background: rgba(0,0,0,0.5);
+            border: 3px solid rgba(243, 156, 18, 0.5);
+            box-shadow: 0 0 30px rgba(243, 156, 18, 0.3);
+        }
+
+        .character-preview-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            animation: characterFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes characterFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .preview-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle, rgba(243, 156, 18, 0.2) 0%, transparent 70%);
+            pointer-events: none;
         }
 
         .create-btn {
@@ -281,6 +328,13 @@
             font-size: 32px;
             border: 3px solid #fff;
             box-shadow: 0 0 15px rgba(243, 156, 18, 0.5);
+            overflow: hidden;
+        }
+
+        .player-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .player-details {
@@ -329,28 +383,26 @@
         /* Character Display */
         .character-display {
             position: relative;
-            width: 280px;
-            height: 380px;
+            width: 300px;
+            height: 450px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .character-sprite {
-            font-size: 200px;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
             filter: drop-shadow(0 0 30px rgba(255,255,255,0.3));
             animation: characterFloat 3s ease-in-out infinite;
-        }
-
-        @keyframes characterFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
+            border-radius: 20px;
         }
 
         .character-glow {
             position: absolute;
-            width: 250px;
-            height: 250px;
+            width: 280px;
+            height: 280px;
             border-radius: 50%;
             background: radial-gradient(circle, rgba(243, 156, 18, 0.4) 0%, transparent 70%);
             animation: glowPulse 2s ease-in-out infinite;
@@ -602,13 +654,23 @@
 
         /* Responsive */
         @media (max-width: 480px) {
-            .character-display {
-                width: 240px;
-                height: 320px;
+            .class-selection {
+                grid-template-columns: 1fr;
+                max-width: 300px;
             }
 
-            .character-sprite {
-                font-size: 160px;
+            .class-preview {
+                height: 100px;
+            }
+
+            .character-preview-area {
+                height: 350px;
+                max-width: 300px;
+            }
+
+            .character-display {
+                width: 260px;
+                height: 380px;
             }
 
             .side-btn {
@@ -650,30 +712,36 @@
 
     <!-- Character Creation -->
     <div class="character-creation" id="characterCreation">
-        <h1 class="creation-title">🎮 СОЗДАНИЕ ПЕРСОНАЖА</h1>
-        <p class="creation-subtitle">Выбери класс и введи имя героя</p>
+        <h1 class="creation-title">🎮 ВЫБЕРИ ГЕРОЯ</h1>
+        <p class="creation-subtitle">Введи имя и выбери класс персонажа</p>
         
-        <input type="text" class="name-input" id="characterName" placeholder="Введите имя..." maxlength="20">
+        <input type="text" class="name-input" id="characterName" placeholder="Введите имя героя..." maxlength="20">
+        
+        <!-- Character Preview -->
+        <div class="character-preview-area" id="characterPreviewArea" style="display: none;">
+            <img src="" alt="Character" class="character-preview-img" id="characterPreviewImg">
+            <div class="preview-glow"></div>
+        </div>
         
         <div class="class-selection">
-            <div class="class-card" data-class="warrior">
-                <div class="class-icon">⚔️</div>
-                <div class="class-name">Воин</div>
+            <div class="class-card" data-class="rogue" data-image="images/rogue.png">
+                <img src="images/rogue.png" alt="Rogue" class="class-preview">
+                <div class="class-name">🗡️ Разбойник</div>
+                <div class="class-stats">HP: 100 | ATK: 20 | Крит: 25%</div>
+            </div>
+            <div class="class-card" data-class="warrior" data-image="images/warrior.png">
+                <img src="images/warrior.png" alt="Warrior" class="class-preview">
+                <div class="class-name">⚔️ Воин</div>
                 <div class="class-stats">HP: 150 | ATK: 15 | DEF: 10</div>
             </div>
-            <div class="class-card" data-class="mage">
-                <div class="class-icon">🔮</div>
-                <div class="class-name">Маг</div>
+            <div class="class-card" data-class="mage" data-image="images/mage.png">
+                <img src="images/mage.png" alt="Mage" class="class-preview">
+                <div class="class-name">🔮 Маг</div>
                 <div class="class-stats">HP: 80 | ATK: 25 | DEF: 3</div>
             </div>
-            <div class="class-card" data-class="rogue">
-                <div class="class-icon">🗡️</div>
-                <div class="class-name">Разбойник</div>
-                <div class="class-stats">HP: 100 | ATK: 20 | DEF: 5</div>
-            </div>
-            <div class="class-card" data-class="paladin">
-                <div class="class-icon">🛡️</div>
-                <div class="class-name">Паладин</div>
+            <div class="class-card" data-class="paladin" data-image="images/paladin.png">
+                <img src="images/paladin.png" alt="Paladin" class="class-preview">
+                <div class="class-name">🛡️ Паладин</div>
                 <div class="class-stats">HP: 130 | ATK: 12 | DEF: 15</div>
             </div>
         </div>
@@ -688,7 +756,9 @@
         <!-- Top Bar -->
         <div class="top-bar">
             <div class="player-info">
-                <div class="player-avatar" id="playerAvatar">⚔️</div>
+                <div class="player-avatar" id="playerAvatar">
+                    <img src="" alt="Avatar" id="playerAvatarImg">
+                </div>
                 <div class="player-details">
                     <div class="player-name" id="playerName">Игрок</div>
                     <div class="player-level" id="playerLevel">Ур. 1</div>
@@ -731,7 +801,7 @@
             <!-- Character Display -->
             <div class="character-display">
                 <div class="character-glow"></div>
-                <div class="character-sprite" id="characterSprite">⚔️</div>
+                <img src="" alt="Character" class="character-sprite" id="characterSprite">
             </div>
         </div>
 
@@ -767,6 +837,14 @@
         tg.expand();
         tg.ready();
 
+        // URLs изображений персонажей
+        const CHARACTER_IMAGES = {
+            'rogue': 'images/rogue.png',
+            'warrior': 'images/warrior.png',
+            'mage': 'images/mage.png',
+            'paladin': 'images/paladin.png'
+        };
+
         // Игровые данные
         let gameState = {
             userId: tg.initDataUnsafe?.user?.id || 0,
@@ -788,13 +866,6 @@
             { id: 3, name: '👹 Орк', level: 10, hp: 200, atk: 35, exp: 120, gold: 100 },
             { id: 4, name: '🐉 Дракон', level: 20, hp: 500, atk: 60, exp: 500, gold: 1000 }
         ];
-
-        const CLASS_ICONS = {
-            'warrior': '⚔️',
-            'mage': '🔮',
-            'rogue': '🗡️',
-            'paladin': '🛡️'
-        };
 
         // Загрузка игры
         window.onload = async function() {
@@ -839,6 +910,14 @@
                 this.classList.add('selected');
                 gameState.selectedClass = this.dataset.class;
                 
+                // Показываем превью персонажа
+                const imageUrl = this.dataset.image;
+                const previewArea = document.getElementById('characterPreviewArea');
+                const previewImg = document.getElementById('characterPreviewImg');
+                
+                previewImg.src = imageUrl;
+                previewArea.style.display = 'block';
+                
                 const btn = document.getElementById('createCharacterBtn');
                 btn.disabled = !document.getElementById('characterName').value.trim();
             });
@@ -878,8 +957,11 @@
             document.getElementById('playerLevel').textContent = `Ур. ${gameState.level}`;
             document.getElementById('playerHp').textContent = `${gameState.hp}/${gameState.hpMax}`;
             document.getElementById('playerGold').textContent = gameState.gold;
-            document.getElementById('playerAvatar').textContent = CLASS_ICONS[gameState.class] || '⚔️';
-            document.getElementById('characterSprite').textContent = CLASS_ICONS[gameState.class] || '⚔️';
+            
+            // Устанавливаем изображение персонажа
+            const characterImg = CHARACTER_IMAGES[gameState.class] || CHARACTER_IMAGES['warrior'];
+            document.getElementById('characterSprite').src = characterImg;
+            document.getElementById('playerAvatarImg').src = characterImg;
         }
 
         // Открытие битвы
