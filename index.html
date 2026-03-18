@@ -3,401 +3,701 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="format-detection" content="telephone=no">
-    <title>Legacy Wars - Lineage RPG</title>
+    <title>Legacy Wars - Tap Game</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #f39c12, #e74c3c);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: 3px solid #fff;
+        }
+
+        .balance-container {
+            text-align: right;
+        }
+
+        .balance {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f39c12;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .level {
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        /* Main Click Area */
+        .click-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .character {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #e74c3c 0%, #c0392b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 120px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            box-shadow: 0 0 50px rgba(231, 76, 60, 0.5);
+            border: 5px solid rgba(255,255,255,0.2);
+            position: relative;
+            z-index: 10;
+        }
+
+        .character:active {
+            transform: scale(0.95);
+        }
+
+        .character.clicked {
+            animation: clickAnimation 0.1s ease-out;
+        }
+
+        @keyframes clickAnimation {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+
+        /* Floating Numbers */
+        .float-number {
+            position: absolute;
+            font-size: 28px;
+            font-weight: bold;
+            color: #f39c12;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            z-index: 100;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
+        }
+
+        /* Energy Bar */
+        .energy-container {
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .energy-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .energy-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f39c12, #e74c3c);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .energy-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255,255,255,0.3) 50%, 
+                transparent 100%);
+            animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Navigation */
+        .nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            border-top: 2px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px 15px 0 0;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            padding: 10px;
+            transition: color 0.3s;
+        }
+
+        .nav-btn.active {
+            color: #f39c12;
+        }
+
+        .nav-btn-icon {
+            font-size: 24px;
+        }
+
+        /* Panels */
+        .panel {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* Upgrade Cards */
+        .upgrade-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .upgrade-info h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .upgrade-info p {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(45deg, #f39c12, #e74c3c);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .upgrade-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .upgrade-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Loading */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #1a1a2e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.1);
+            border-top-color: #f39c12;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(46, 204, 113, 0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideDown 0.3s ease-out;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        .notification.error {
+            background: rgba(231, 76, 60, 0.9);
+        }
+
+        @keyframes slideDown {
+            from { top: -50px; opacity: 0; }
+            to { top: 20px; opacity: 1; }
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #f39c12;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+    </style>
 </head>
 <body>
-    <div class="stars" id="stars"></div>
-    
-    <div class="container">
-        <!-- Шапка -->
-        <div class="game-header">
-            <h1 class="game-title">⚔️ LEGACY WARS ⚔️</h1>
-            <p class="game-subtitle">MMORPG в стиле Lineage</p>
-        </div>
+    <!-- Loading Screen -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Загрузка Legacy Wars...</p>
+    </div>
 
-        <!-- Ресурсы -->
-        <div class="resources-bar">
-            <div class="resource">
-                <div class="resource-icon">💰</div>
-                <div class="resource-value" id="adena">1000</div>
-                <div class="resource-label">Адена</div>
-            </div>
-            <div class="resource">
-                <div class="resource-icon">⭐</div>
-                <div class="resource-value" id="sp">0</div>
-                <div class="resource-label">SP</div>
-            </div>
-            <div class="resource">
-                <div class="resource-icon">🏆</div>
-                <div class="resource-value" id="reputation">0</div>
-                <div class="resource-label">Репутация</div>
-            </div>
-        </div>
-
-        <!-- Навигация -->
-        <div class="nav-tabs">
-            <div class="nav-tab active" data-tab="character" onclick="switchTab('character')">👤 Герой</div>
-            <div class="nav-tab" data-tab="world" onclick="switchTab('world')">🗺️ Мир</div>
-            <div class="nav-tab" data-tab="combat" onclick="switchTab('combat')">⚔️ Бой</div>
-            <div class="nav-tab" data-tab="clan" onclick="switchTab('clan')">🏰 Клан</div>
-            <div class="nav-tab" data-tab="craft" onclick="switchTab('craft')">⚒️ Крафт</div>
-        </div>
-
-        <!-- Панель: Персонаж -->
-        <div class="panel active" id="panel-character">
-            <div class="profile-header">
-                <div class="avatar" id="char-avatar">⚔️</div>
-                <div class="profile-info">
-                    <h2 id="char-name">Загрузка...</h2>
-                    <span class="class-badge" id="char-class">Воитель</span>
-                    <div style="margin-top: 8px; font-size: 14px; color: var(--text-muted);">
-                        Ур. <span id="char-level">1</span> | 
-                        <span id="char-pos">50:50</span>
-                    </div>
+    <div class="container" id="app" style="display: none;">
+        <!-- Header -->
+        <div class="header">
+            <div class="player-info">
+                <div class="avatar" id="avatar">⚔️</div>
+                <div>
+                    <div class="level" id="levelDisplay">Уровень 1</div>
+                    <div style="font-size: 12px; color: #aaa;" id="nameDisplay">Игрок</div>
                 </div>
             </div>
-
-            <!-- HP/MP/CP Bars -->
-            <div class="bar-container">
-                <div class="bar-label">
-                    <span>❤️ HP</span>
-                    <span id="hp-text">100/100</span>
-                </div>
-                <div class="bar hp-bar">
-                    <div class="bar-fill" id="hp-fill" style="width: 100%"></div>
-                </div>
-            </div>
-
-            <div class="bar-container">
-                <div class="bar-label">
-                    <span>💙 MP</span>
-                    <span id="mp-text">50/50</span>
-                </div>
-                <div class="bar mp-bar">
-                    <div class="bar-fill" id="mp-fill" style="width: 100%"></div>
-                </div>
-            </div>
-
-            <div class="bar-container">
-                <div class="bar-label">
-                    <span>🛡️ CP</span>
-                    <span id="cp-text">100/100</span>
-                </div>
-                <div class="bar cp-bar">
-                    <div class="bar-fill" id="cp-fill" style="width: 100%"></div>
-                </div>
-            </div>
-
-            <!-- Stats -->
-            <div class="stats-grid lineage-stats">
-                <div class="stat-item">
-                    <div class="stat-icon">💪</div>
-                    <div class="stat-info">
-                        <div class="stat-label">STR</div>
-                        <div class="stat-value" id="stat-str">40</div>
-                    </div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-icon">🏃</div>
-                    <div class="stat-info">
-                        <div class="stat-label">DEX</div>
-                        <div class="stat-value" id="stat-dex">30</div>
-                    </div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-icon">❤️</div>
-                    <div class="stat-info">
-                        <div class="stat-label">CON</div>
-                        <div class="stat-value" id="stat-con">35</div>
-                    </div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-icon">🧠</div>
-                    <div class="stat-info">
-                        <div class="stat-label">INT</div>
-                        <div class="stat-value" id="stat-int">10</div>
-                    </div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-icon">👁️</div>
-                    <div class="stat-info">
-                        <div class="stat-label">WIT</div>
-                        <div class="stat-value" id="stat-wit">10</div>
-                    </div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-icon">🙏</div>
-                    <div class="stat-info">
-                        <div class="stat-label">MEN</div>
-                        <div class="stat-value" id="stat-men">20</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Combat Stats -->
-            <div class="combat-stats-panel">
-                <h4>⚔️ Боевые характеристики</h4>
-                <div class="combat-stats-grid">
-                    <div class="combat-stat">
-                        <span class="combat-stat-label">P.ATK</span>
-                        <span class="combat-stat-value" id="combat-patk">50</span>
-                    </div>
-                    <div class="combat-stat">
-                        <span class="combat-stat-label">P.DEF</span>
-                        <span class="combat-stat-value" id="combat-pdef">30</span>
-                    </div>
-                    <div class="combat-stat">
-                        <span class="combat-stat-label">M.ATK</span>
-                        <span class="combat-stat-value" id="combat-matk">20</span>
-                    </div>
-                    <div class="combat-stat">
-                        <span class="combat-stat-label">M.DEF</span>
-                        <span class="combat-stat-value" id="combat-mdef">15</span>
-                    </div>
-                    <div class="combat-stat">
-                        <span class="combat-stat-label">Crit</span>
-                        <span class="combat-stat-value" id="combat-crit">40</span>
-                    </div>
-                    <div class="combat-stat">
-                        <span class="combat-stat-label">Speed</span>
-                        <span class="combat-stat-value" id="combat-speed">100</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="action-buttons">
-                <button class="btn btn-success" onclick="rest()">
-                    💤 Отдых
-                </button>
-                <button class="btn btn-primary" onclick="openSkills()">
-                    📚 Скиллы
-                </button>
-            </div>
-        </div>
-
-        <!-- Панель: Мир -->
-        <div class="panel" id="panel-world">
-            <div class="world-map-container">
-                <h3>🗺️ Мир Legacy Wars</h3>
-                <div class="coordinates-display">
-                    📍 <span id="world-pos-x">50</span> : <span id="world-pos-y">50</span>
-                </div>
-                
-                <div class="map-grid" id="map-grid">
-                    <!-- Генерируется JS -->
-                </div>
-                
-                <div class="zone-info" id="zone-info">
-                    <span class="zone-safe">🟢 Безопасная зона</span>
-                </div>
-            </div>
-
-            <div class="nearby-section">
-                <h4>👁️ Рядом с тобой:</h4>
-                <div class="nearby-list" id="nearby-list">
-                    <!-- Генерируется JS -->
-                </div>
-            </div>
-
-            <div class="movement-controls">
-                <button class="btn-move" onclick="move('nw')">↖️</button>
-                <button class="btn-move" onclick="move('n')">⬆️</button>
-                <button class="btn-move" onclick="move('ne')">↗️</button>
-                <br>
-                <button class="btn-move" onclick="move('w')">⬅️</button>
-                <button class="btn-move btn-move-center" onclick="move('center')">📍</button>
-                <button class="btn-move" onclick="move('e')">➡️</button>
-                <br>
-                <button class="btn-move" onclick="move('sw')">↙️</button>
-                <button class="btn-move" onclick="move('s')">⬇️</button>
-                <button class="btn-move" onclick="move('se')">↘️</button>
-            </div>
-        </div>
-
-        <!-- Панель: Бой -->
-        <div class="panel" id="panel-combat">
-            <div class="combat-arena">
-                <div class="combat-header">
-                    <span class="combat-status" id="combat-status">⚔️ БОЙ</span>
-                    <span class="combat-round" id="combat-round">Раунд 1</span>
-                </div>
-
-                <div class="fighters-row">
-                    <div class="fighter-box player-box">
-                        <div class="fighter-icon" id="player-fighter-icon">⚔️</div>
-                        <div class="fighter-name" id="player-fighter-name">Ты</div>
-                        <div class="fighter-bars">
-                            <div class="mini-bar hp-mini">
-                                <div class="mini-fill" id="player-hp-mini" style="width: 100%"></div>
-                            </div>
-                            <div class="mini-bar mp-mini">
-                                <div class="mini-fill" id="player-mp-mini" style="width: 100%"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="vs-center">VS</div>
-
-                    <div class="fighter-box enemy-box" id="enemy-box" style="display: none;">
-                        <div class="fighter-icon" id="enemy-icon">🐺</div>
-                        <div class="fighter-name" id="enemy-name">Волк</div>
-                        <div class="fighter-bars">
-                            <div class="mini-bar hp-mini">
-                                <div class="mini-fill enemy-fill" id="enemy-hp-mini" style="width: 100%"></div>
-                            </div>
-                        </div>
-                        <div class="enemy-level" id="enemy-level">Ур. 3</div>
-                    </div>
-                </div>
-
-                <div class="target-selection" id="target-selection">
-                    <p>Выбери цель для атаки</p>
-                    <div class="target-list" id="target-list">
-                        <!-- Генерируется JS -->
-                    </div>
-                </div>
-
-                <div class="combat-log" id="combat-log"></div>
-
-                <div class="combat-actions" id="combat-actions" style="display: none;">
-                    <div class="action-row">
-                        <button class="btn btn-danger combat-btn" onclick="combatAttack()">
-                            🗡️ Атака
-                        </button>
-                        <button class="btn btn-warning combat-btn" onclick="combatSkill()">
-                            ⚡ Скилл
-                        </button>
-                    </div>
-                    <div class="action-row">
-                        <button class="btn btn-secondary combat-btn" onclick="combatItem()">
-                            🧪 Предмет
-                        </button>
-                        <button class="btn btn-secondary combat-btn" onclick="combatFlee()">
-                            🏃 Бежать
-                        </button>
-                    </div>
+            <div class="balance-container">
+                <div class="balance">
+                    <span>💰</span>
+                    <span id="balance">0</span>
                 </div>
             </div>
         </div>
 
-        <!-- Панель: Клан -->
-        <div class="panel" id="panel-clan">
-            <div class="clan-header" id="clan-header">
-                <h3>🏰 Клановая система</h3>
-                <p class="no-clan" id="no-clan-msg">Ты не состоишь в клане</p>
+        <!-- Game Panel -->
+        <div class="panel active" id="gamePanel">
+            <div class="click-area">
+                <div class="character" id="character">🐉</div>
             </div>
 
-            <div class="clan-info" id="clan-info" style="display: none;">
-                <div class="clan-banner">
-                    <span class="clan-icon">🏰</span>
-                    <div class="clan-title">
-                        <h4 id="clan-name">Название</h4>
-                        <span class="clan-level" id="clan-level">Ур. 1</span>
-                    </div>
+            <div class="energy-container">
+                <div class="energy-info">
+                    <span>⚡ Энергия</span>
+                    <span id="energyText">1000/1000</span>
                 </div>
-                
-                <div class="clan-stats">
-                    <div class="clan-stat">
-                        <span class="label">Участники</span>
-                        <span class="value" id="clan-members">1/40</span>
-                    </div>
-                    <div class="clan-stat">
-                        <span class="label">Репутация</span>
-                        <span class="value" id="clan-rep">0</span>
-                    </div>
-                    <div class="clan-stat">
-                        <span class="label">Казна</span>
-                        <span class="value" id="clan-treasury">0</span>
-                    </div>
-                </div>
-
-                <div class="castle-info" id="castle-info">
-                    <span class="no-castle">Нет замка</span>
+                <div class="energy-bar">
+                    <div class="energy-fill" id="energyFill" style="width: 100%;"></div>
                 </div>
             </div>
+        </div>
 
-            <div class="clan-actions" id="clan-actions">
-                <button class="btn btn-primary" onclick="createClan()">
-                    🏰 Создать клан
-                </button>
-                <button class="btn btn-secondary" onclick="searchClan()">
-                    🔍 Найти клан
-                </button>
-                <button class="btn btn-secondary" onclick="clanList()">
-                    📜 Список кланов
+        <!-- Upgrades Panel -->
+        <div class="panel" id="upgradesPanel">
+            <h2 style="margin-bottom: 20px;">🛒 Улучшения</h2>
+            
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <h3>💪 Сила клика</h3>
+                    <p>+1 к силе тапа</p>
+                    <p style="color: #f39c12;" id="tapPowerCost">Цена: 100 💰</p>
+                </div>
+                <button class="upgrade-btn" id="buyTapPower" onclick="buyUpgrade('tap_power')">
+                    Купить
                 </button>
             </div>
 
-            <div class="siege-banner" id="siege-banner" style="display: none;">
-                ⚔️ ОСАДА ЗАМКА АКТИВНА! ⚔️
-                <button class="btn btn-danger" onclick="joinSiege()">
-                    Присоединиться
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <h3>⚡ Макс. энергия</h3>
+                    <p>+500 к энергии</p>
+                    <p style="color: #f39c12;" id="energyCost">Цена: 200 💰</p>
+                </div>
+                <button class="upgrade-btn" id="buyEnergy" onclick="buyUpgrade('energy_max')">
+                    Купить
                 </button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statTapPower">1</div>
+                    <div class="stat-label">Сила клика</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statEnergyMax">1000</div>
+                    <div class="stat-label">Макс. энергия</div>
+                </div>
             </div>
         </div>
 
-        <!-- Панель: Крафт -->
-        <div class="panel" id="panel-craft">
-            <div class="craft-header">
-                <h3>⚒️ Мастерская</h3>
-                <div class="craft-level">
-                    <span>Уровень ремесла:</span>
-                    <span class="craft-lvl" id="craft-level">1</span>
+        <!-- Profile Panel -->
+        <div class="panel" id="profilePanel">
+            <h2 style="margin-bottom: 20px;">📊 Профиль</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statLevel">1</div>
+                    <div class="stat-label">Уровень</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statGold">0</div>
+                    <div class="stat-label">Золото</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statExp">0</div>
+                    <div class="stat-label">Опыт</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statClass">⚔️</div>
+                    <div class="stat-label">Класс</div>
                 </div>
             </div>
+        </div>
 
-            <div class="recipe-tabs">
-                <button class="recipe-tab active" onclick="showRecipes('weapon')">⚔️ Оружие</button>
-                <button class="recipe-tab" onclick="showRecipes('armor')">🛡️ Броня</button>
-                <button class="recipe-tab" onclick="showRecipes('consumable')">💊 Расходники</button>
-            </div>
-
-            <div class="recipe-list" id="recipe-list">
-                <!-- Генерируется JS -->
-            </div>
-
-            <div class="gather-section">
-                <h4>⛏️ Собирательство</h4>
-                <div class="gather-buttons">
-                    <button class="btn btn-secondary" onclick="gather('mine')">
-                        ⛏️ Копать
-                    </button>
-                    <button class="btn btn-secondary" onclick="gather('herb')">
-                        🌿 Собирать
-                    </button>
-                    <button class="btn btn-secondary" onclick="gather('chop')">
-                        🪓 Рубить
-                    </button>
-                    <button class="btn btn-secondary" onclick="gather('hunt')">
-                        🏹 Охотиться
-                    </button>
-                </div>
-            </div>
+        <!-- Navigation -->
+        <div class="nav">
+            <button class="nav-btn active" onclick="showPanel('game')">
+                <span class="nav-btn-icon">🎮</span>
+                <span>Игра</span>
+            </button>
+            <button class="nav-btn" onclick="showPanel('upgrades')">
+                <span class="nav-btn-icon">🛒</span>
+                <span>Улучшения</span>
+            </button>
+            <button class="nav-btn" onclick="showPanel('profile')">
+                <span class="nav-btn-icon">📊</span>
+                <span>Профиль</span>
+            </button>
         </div>
     </div>
 
-    <!-- Модальные окна -->
-    <div class="modal" id="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="modal-title">Заголовок</h3>
-                <button class="modal-close" onclick="closeModal()">×</button>
-            </div>
-            <div class="modal-body" id="modal-body">
-                Содержимое
-            </div>
-            <div class="modal-actions" id="modal-actions">
-                <!-- Генерируется JS -->
-            </div>
-        </div>
-    </div>
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
 
-    <!-- Уведомления -->
-    <div class="notifications-container" id="notifications"></div>
+        // Состояние игры
+        let gameState = {
+            userId: tg.initDataUnsafe?.user?.id || 0,
+            name: tg.initDataUnsafe?.user?.first_name || 'Игрок',
+            balance: 0,
+            energy: 1000,
+            energyMax: 1000,
+            tapPower: 1,
+            level: 1,
+            exp: 0,
+            class: 'warrior',
+            lastEnergyUpdate: Date.now()
+        };
 
-    <script src="game.js"></script>
+        // Цены улучшений
+        const upgradePrices = {
+            tap_power: 100,
+            energy_max: 200
+        };
+
+        // Загрузка данных
+        async function loadProfile() {
+            try {
+                // Пытаемся получить данные от бота
+                tg.sendData(JSON.stringify({ action: 'get_profile' }));
+                
+                // Для демо-режима используем локальные данные
+                const saved = localStorage.getItem('legacyWarsSave');
+                if (saved) {
+                    gameState = { ...gameState, ...JSON.parse(saved) };
+                }
+                
+                updateUI();
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('app').style.display = 'flex';
+            } catch (e) {
+                console.error('Load error:', e);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('app').style.display = 'flex';
+            }
+        }
+
+        // Обновление интерфейса
+        function updateUI() {
+            document.getElementById('balance').textContent = gameState.balance.toLocaleString();
+            document.getElementById('energyText').textContent = `${Math.floor(gameState.energy)}/${gameState.energyMax}`;
+            document.getElementById('energyFill').style.width = `${(gameState.energy / gameState.energyMax) * 100}%`;
+            document.getElementById('levelDisplay').textContent = `Уровень ${gameState.level}`;
+            document.getElementById('nameDisplay').textContent = gameState.name;
+            
+            // Статистика
+            document.getElementById('statTapPower').textContent = gameState.tapPower;
+            document.getElementById('statEnergyMax').textContent = gameState.energyMax;
+            document.getElementById('statLevel').textContent = gameState.level;
+            document.getElementById('statGold').textContent = gameState.balance.toLocaleString();
+            
+            // Цены
+            document.getElementById('tapPowerCost').textContent = `Цена: ${upgradePrices.tap_power} 💰`;
+            document.getElementById('energyCost').textContent = `Цена: ${upgradePrices.energy_max} 💰`;
+            
+            // Кнопки
+            document.getElementById('buyTapPower').disabled = gameState.balance < upgradePrices.tap_power;
+            document.getElementById('buyEnergy').disabled = gameState.balance < upgradePrices.energy_max;
+        }
+
+        // Регенерация энергии
+        function regenerateEnergy() {
+            const now = Date.now();
+            const elapsed = (now - gameState.lastEnergyUpdate) / 1000;
+            const regen = elapsed * 1; // 1 энергия в секунду
+            
+            if (gameState.energy < gameState.energyMax) {
+                gameState.energy = Math.min(gameState.energyMax, gameState.energy + regen);
+                gameState.lastEnergyUpdate = now;
+                updateUI();
+                saveGame();
+            }
+        }
+
+        // Сохранение игры
+        function saveGame() {
+            localStorage.setItem('legacyWarsSave', JSON.stringify(gameState));
+        }
+
+        // Клик по персонажу
+        const character = document.getElementById('character');
+        character.addEventListener('click', (e) => {
+            if (gameState.energy < gameState.tapPower) {
+                showNotification('⚡ Недостаточно энергии!', true);
+                return;
+            }
+
+            // Вибрация
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+
+            // Анимация
+            character.classList.add('clicked');
+            setTimeout(() => character.classList.remove('clicked'), 100);
+
+            // Плавающая цифра
+            const floatNum = document.createElement('div');
+            floatNum.className = 'float-number';
+            floatNum.textContent = `+${gameState.tapPower}`;
+            floatNum.style.left = `${e.clientX - 20}px`;
+            floatNum.style.top = `${e.clientY - 40}px`;
+            document.body.appendChild(floatNum);
+            setTimeout(() => floatNum.remove(), 1000);
+
+            // Обновление состояния
+            gameState.balance += gameState.tapPower;
+            gameState.energy -= gameState.tapPower;
+            gameState.lastEnergyUpdate = Date.now();
+            
+            updateUI();
+            saveGame();
+
+            // Отправка данных боту (пакетная)
+            sendTapData();
+        });
+
+        // Пакетная отправка тапов
+        let tapBuffer = { clicks: 0, energy: 0 };
+        let sendTimeout = null;
+
+        function sendTapData() {
+            tapBuffer.clicks += 1;
+            tapBuffer.energy += gameState.tapPower;
+
+            if (sendTimeout) clearTimeout(sendTimeout);
+            
+            sendTimeout = setTimeout(() => {
+                if (tapBuffer.clicks > 0) {
+                    tg.sendData(JSON.stringify({
+                        action: 'tap',
+                        clicks: tapBuffer.clicks,
+                        energy: tapBuffer.energy
+                    }));
+                    tapBuffer = { clicks: 0, energy: 0 };
+                }
+            }, 2000); // Отправляем каждые 2 секунды
+        }
+
+        // Покупка улучшений
+        async function buyUpgrade(type) {
+            const price = upgradePrices[type];
+            
+            if (gameState.balance < price) {
+                showNotification('❌ Недостаточно золота!', true);
+                return;
+            }
+
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred('success');
+            }
+
+            gameState.balance -= price;
+            
+            if (type === 'tap_power') {
+                gameState.tapPower += 1;
+                upgradePrices.tap_power = Math.floor(upgradePrices.tap_power * 1.5);
+            } else if (type === 'energy_max') {
+                gameState.energyMax += 500;
+                gameState.energy += 500;
+                upgradePrices.energy_max = Math.floor(upgradePrices.energy_max * 1.3);
+            }
+
+            showNotification('✅ Улучшение куплено!');
+            updateUI();
+            saveGame();
+
+            // Отправка боту
+            tg.sendData(JSON.stringify({
+                action: 'buy_upgrade',
+                upgrade: type,
+                cost: price
+            }));
+        }
+
+        // Переключение панелей
+        function showPanel(panelName) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(`${panelName}Panel`).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.selectionChanged();
+            }
+        }
+
+        // Уведомления
+        function showNotification(message, isError = false) {
+            const notif = document.createElement('div');
+            notif.className = `notification ${isError ? 'error' : ''}`;
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+
+        // Обработка данных от бота
+        tg.onEvent('message', (data) => {
+            try {
+                const response = JSON.parse(data);
+                if (response.success && response.profile) {
+                    gameState = { ...gameState, ...response.profile };
+                    updateUI();
+                    saveGame();
+                }
+            } catch (e) {
+                console.error('Message parse error:', e);
+            }
+        });
+
+        // Запуск
+        setInterval(regenerateEnergy, 1000);
+        loadProfile();
+    </script>
 </body>
 </html>
