@@ -20,10 +20,9 @@
             color: #ffffff;
             min-height: 100vh;
             overflow: hidden;
-            position: relative;
         }
 
-        /* Background Image - Плавающие острова */
+        /* Background */
         .game-background {
             position: fixed;
             top: 0;
@@ -33,17 +32,15 @@
             background-image: url('images/background.jpg');
             background-size: cover;
             background-position: center;
-            background-repeat: no-repeat;
             z-index: -2;
-            animation: backgroundZoom 20s ease-in-out infinite;
+            animation: backgroundZoom 30s ease-in-out infinite;
         }
 
         @keyframes backgroundZoom {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            50% { transform: scale(1.08); }
         }
 
-        /* Затемнение фона */
         .bg-overlay {
             position: fixed;
             top: 0;
@@ -51,35 +48,9 @@
             width: 100%;
             height: 100%;
             background: linear-gradient(180deg, 
-                rgba(26, 26, 46, 0.6) 0%, 
-                rgba(22, 33, 62, 0.5) 50%, 
-                rgba(15, 52, 96, 0.6) 100%);
+                rgba(26, 26, 46, 0.5) 0%, 
+                rgba(15, 52, 96, 0.4) 100%);
             z-index: -1;
-        }
-
-        /* Звёзды */
-        .stars {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0));
-            background-repeat: repeat;
-            background-size: 200px 200px;
-            animation: twinkle 5s ease-in-out infinite;
-            opacity: 0.6;
-            pointer-events: none;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 0.9; }
         }
 
         /* Loading Screen */
@@ -142,7 +113,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.9);
             backdrop-filter: blur(15px);
             z-index: 5000;
             padding: 20px;
@@ -183,55 +154,11 @@
             font-size: 16px;
             margin-bottom: 30px;
             text-align: center;
-            backdrop-filter: blur(10px);
-        }
-
-        .name-input::placeholder {
-            color: #aaa;
         }
 
         .name-input:focus {
             outline: none;
             border-color: #f39c12;
-            box-shadow: 0 0 15px rgba(243, 156, 18, 0.5);
-        }
-
-        /* Character Preview Area */
-        .character-preview-area {
-            width: 100%;
-            max-width: 350px;
-            height: 400px;
-            margin: 20px 0;
-            border-radius: 20px;
-            overflow: hidden;
-            position: relative;
-            background: transparent;
-            border: 3px solid rgba(243, 156, 18, 0.6);
-            box-shadow: 0 0 40px rgba(243, 156, 18, 0.4);
-        }
-
-        .character-preview-img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            animation: characterFloat 3s ease-in-out infinite;
-            /* Важно для PNG с прозрачностью */
-            background: transparent;
-        }
-
-        @keyframes characterFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .preview-glow {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle, rgba(243, 156, 18, 0.3) 0%, transparent 70%);
-            pointer-events: none;
         }
 
         .class-selection {
@@ -251,15 +178,11 @@
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
         }
 
         .class-card:hover {
             transform: translateY(-5px);
             background: rgba(255,255,255,0.25);
-            border-color: rgba(243, 156, 18, 0.8);
         }
 
         .class-card.selected {
@@ -289,6 +212,42 @@
             color: #ccc;
         }
 
+        .character-preview-area {
+            width: 100%;
+            max-width: 350px;
+            height: 400px;
+            margin: 20px 0;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            background: transparent;
+            border: 3px solid rgba(243, 156, 18, 0.6);
+            box-shadow: 0 0 40px rgba(243, 156, 18, 0.4);
+        }
+
+        .character-preview-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            animation: characterFloat 3s ease-in-out infinite;
+            background: transparent;
+        }
+
+        @keyframes characterFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .preview-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle, rgba(243, 156, 18, 0.3) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
         .create-btn {
             width: 100%;
             max-width: 300px;
@@ -300,8 +259,7 @@
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 5px 20px rgba(243, 156, 18, 0.4);
+            transition: transform 0.2s;
         }
 
         .create-btn:active {
@@ -311,7 +269,6 @@
         .create-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            box-shadow: none;
         }
 
         /* Main Game Screen */
@@ -341,7 +298,6 @@
             align-items: center;
             justify-content: space-between;
             border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
         }
 
         .player-info {
@@ -360,7 +316,6 @@
             justify-content: center;
             font-size: 32px;
             border: 3px solid #fff;
-            box-shadow: 0 0 15px rgba(243, 156, 18, 0.5);
             overflow: hidden;
         }
 
@@ -378,14 +333,11 @@
         .player-name {
             font-weight: bold;
             font-size: 16px;
-            margin-bottom: 3px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
         .player-level {
             font-size: 12px;
             color: #f39c12;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
 
         .player-stats {
@@ -402,57 +354,100 @@
             background: rgba(255,255,255,0.1);
             padding: 5px 10px;
             border-radius: 10px;
-            backdrop-filter: blur(5px);
         }
 
-        .stat-icon {
-            font-size: 18px;
-        }
-
-        /* Main Content */
-        .main-content {
+        /* Character Scene */
+        .character-scene {
             flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             position: relative;
-            margin: 20px 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 50px;
         }
 
-        /* Character Display */
-        .character-display {
-            position: relative;
-            width: 320px;
-            height: 480px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .character-shadow {
+            position: absolute;
+            bottom: 80px;
+            width: 200px;
+            height: 60px;
+            background: radial-gradient(ellipse, rgba(0,0,0,0.6) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(10px);
+            animation: shadowPulse 3s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes shadowPulse {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .character-aura {
+            position: absolute;
+            bottom: 100px;
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, 
+                rgba(243, 156, 18, 0.4) 0%, 
+                rgba(231, 76, 60, 0.2) 40%, 
+                transparent 70%);
+            border-radius: 50%;
+            filter: blur(20px);
+            animation: auraPulse 3s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes auraPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.8; }
         }
 
         .character-sprite {
-            width: 100%;
-            height: 100%;
+            width: 350px;
+            height: 500px;
             object-fit: contain;
-            filter: drop-shadow(0 0 30px rgba(255,255,255,0.4));
-            animation: characterFloat 3s ease-in-out infinite;
-            border-radius: 20px;
-            /* Важно для PNG с прозрачностью */
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6));
+            animation: characterFloatMain 4s ease-in-out infinite;
             background: transparent;
         }
 
-        .character-glow {
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(243, 156, 18, 0.5) 0%, transparent 70%);
-            animation: glowPulse 2s ease-in-out infinite;
-            z-index: -1;
+        @keyframes characterFloatMain {
+            0%, 100% { transform: translateY(0) rotateY(0deg); }
+            25% { transform: translateY(-15px) rotateY(2deg); }
+            75% { transform: translateY(-10px) rotateY(-2deg); }
         }
 
-        @keyframes glowPulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.15); opacity: 0.8; }
+        .particles {
+            position: absolute;
+            bottom: 100px;
+            width: 400px;
+            height: 400px;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(243, 156, 18, 0.8);
+            border-radius: 50%;
+            animation: particleFloat 4s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(243, 156, 18, 0.8);
+        }
+
+        .particle:nth-child(1) { left: 20%; animation-delay: 0s; }
+        .particle:nth-child(2) { left: 50%; animation-delay: 1s; }
+        .particle:nth-child(3) { left: 80%; animation-delay: 2s; }
+        .particle:nth-child(4) { left: 35%; animation-delay: 1.5s; }
+        .particle:nth-child(5) { left: 65%; animation-delay: 0.5s; }
+
+        @keyframes particleFloat {
+            0%, 100% { transform: translateY(0) scale(1); opacity: 0; }
+            50% { transform: translateY(-100px) scale(1.5); opacity: 1; }
         }
 
         /* Side Buttons */
@@ -477,16 +472,10 @@
             transition: all 0.3s;
             border: 2px solid rgba(255,255,255,0.4);
             backdrop-filter: blur(15px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
         }
 
         .side-btn:active {
             transform: scale(0.9);
-        }
-
-        .side-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
         }
 
         .side-btn.battle {
@@ -523,8 +512,6 @@
         .btn-label {
             font-size: 11px;
             font-weight: bold;
-            text-align: center;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
 
         /* Bottom Menu */
@@ -536,7 +523,6 @@
             background: rgba(0, 0, 0, 0.7);
             border-radius: 20px;
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .menu-btn {
@@ -548,28 +534,21 @@
             color: white;
             font-size: 12px;
             cursor: pointer;
-            transition: all 0.3s;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 5px;
-            backdrop-filter: blur(10px);
         }
 
         .menu-btn:active {
             transform: scale(0.95);
-            background: rgba(255,255,255,0.25);
-        }
-
-        .menu-btn:hover {
-            background: rgba(255,255,255,0.2);
         }
 
         .menu-icon {
             font-size: 24px;
         }
 
-        /* Modals */
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -581,7 +560,6 @@
             backdrop-filter: blur(10px);
             z-index: 3000;
             padding: 20px;
-            overflow-y: auto;
         }
 
         .modal.active {
@@ -597,7 +575,6 @@
             max-width: 450px;
             width: 100%;
             border: 2px solid rgba(255,255,255,0.2);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
         }
 
         .modal-title {
@@ -617,22 +594,8 @@
             font-size: 36px;
             cursor: pointer;
             color: #aaa;
-            transition: color 0.3s;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
         }
 
-        .close-modal:hover {
-            color: #fff;
-            background: rgba(255,255,255,0.2);
-        }
-
-        /* Monster Cards */
         .monster-card {
             background: rgba(255,255,255,0.15);
             border-radius: 15px;
@@ -643,8 +606,6 @@
             justify-content: space-between;
             cursor: pointer;
             transition: all 0.3s;
-            border: 2px solid transparent;
-            backdrop-filter: blur(10px);
         }
 
         .monster-card:hover {
@@ -681,15 +642,9 @@
             color: white;
             font-weight: bold;
             cursor: pointer;
-            font-size: 12px;
-            box-shadow: 0 3px 10px rgba(231, 76, 60, 0.4);
         }
 
-        .fight-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Notifications */
+        /* Notification */
         .notification {
             position: fixed;
             top: 20px;
@@ -702,8 +657,6 @@
             font-weight: bold;
             z-index: 10000;
             animation: slideDown 0.3s ease-out;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
-            backdrop-filter: blur(10px);
         }
 
         .notification.error {
@@ -715,64 +668,26 @@
             to { top: 20px; opacity: 1; }
         }
 
-        /* Responsive */
         @media (max-width: 480px) {
             .class-selection {
                 grid-template-columns: 1fr;
-                max-width: 300px;
             }
-
-            .class-preview {
-                height: 90px;
-            }
-
-            .character-preview-area {
-                height: 320px;
-                max-width: 280px;
-            }
-
-            .character-display {
+            .character-sprite {
                 width: 280px;
-                height: 420px;
+                height: 400px;
             }
-
             .side-btn {
                 width: 75px;
                 height: 75px;
-            }
-
-            .btn-icon {
-                font-size: 32px;
-            }
-
-            .btn-label {
-                font-size: 10px;
-            }
-
-            .top-bar {
-                padding: 12px;
-            }
-
-            .player-avatar {
-                width: 50px;
-                height: 50px;
-                font-size: 28px;
-            }
-
-            .stat-item {
-                font-size: 12px;
-                padding: 4px 8px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Background Image -->
     <div class="game-background"></div>
     <div class="bg-overlay"></div>
-    <div class="stars"></div>
 
-    <!-- Loading Screen -->
+    <!-- Loading -->
     <div class="loading" id="loading">
         <div class="loading-logo">⚔️</div>
         <div class="loading-spinner"></div>
@@ -782,11 +697,10 @@
     <!-- Character Creation -->
     <div class="character-creation" id="characterCreation">
         <h1 class="creation-title">🎮 ВЫБЕРИ ГЕРОЯ</h1>
-        <p class="creation-subtitle">Введи имя и выбери класс персонажа</p>
+        <p class="creation-subtitle">Введи имя и выбери класс</p>
         
-        <input type="text" class="name-input" id="characterName" placeholder="Введите имя героя..." maxlength="20">
+        <input type="text" class="name-input" id="characterName" placeholder="Имя героя..." maxlength="20">
         
-        <!-- Character Preview -->
         <div class="character-preview-area" id="characterPreviewArea" style="display: none;">
             <img src="" alt="Character" class="character-preview-img" id="characterPreviewImg">
             <div class="preview-glow"></div>
@@ -815,14 +729,11 @@
             </div>
         </div>
         
-        <button class="create-btn" id="createCharacterBtn" disabled>
-            ⚔️ НАЧАТЬ ПРИКЛЮЧЕНИЕ
-        </button>
+        <button class="create-btn" id="createCharacterBtn" disabled>⚔️ НАЧАТЬ</button>
     </div>
 
-    <!-- Main Game Screen -->
+    <!-- Game Screen -->
     <div class="game-screen" id="gameScreen">
-        <!-- Top Bar -->
         <div class="top-bar">
             <div class="player-info">
                 <div class="player-avatar" id="playerAvatar">
@@ -834,20 +745,23 @@
                 </div>
             </div>
             <div class="player-stats">
-                <div class="stat-item">
-                    <span class="stat-icon">❤️</span>
-                    <span id="playerHp">100/100</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-icon">🪙</span>
-                    <span id="playerGold">100</span>
-                </div>
+                <div class="stat-item">❤️ <span id="playerHp">100/100</span></div>
+                <div class="stat-item">🪙 <span id="playerGold">100</span></div>
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Left Buttons -->
+        <div class="character-scene">
+            <div class="character-shadow"></div>
+            <div class="character-aura"></div>
+            <img src="" alt="Character" class="character-sprite" id="characterSprite">
+            <div class="particles">
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+            </div>
+
             <div class="side-buttons">
                 <div class="side-btn battle" onclick="openBattle()">
                     <div class="btn-icon">⚔️</div>
@@ -866,15 +780,8 @@
                     <div class="btn-label">МАГАЗИН</div>
                 </div>
             </div>
-
-            <!-- Character Display -->
-            <div class="character-display">
-                <div class="character-glow"></div>
-                <img src="" alt="Character" class="character-sprite" id="characterSprite">
-            </div>
         </div>
 
-        <!-- Bottom Menu -->
         <div class="bottom-menu">
             <button class="menu-btn" onclick="showInventory()">
                 <span class="menu-icon">🎒</span>
@@ -901,12 +808,10 @@
     </div>
 
     <script>
-        // Инициализация Telegram WebApp
         const tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
 
-        // URLs изображений персонажей
         const CHARACTER_IMAGES = {
             'rogue': 'images/rogue.png',
             'warrior': 'images/warrior.png',
@@ -914,10 +819,8 @@
             'paladin': 'images/paladin.png'
         };
 
-        // Игровые данные
         let gameState = {
             userId: tg.initDataUnsafe?.user?.id || 0,
-            username: tg.initDataUnsafe?.user?.username || 'Player',
             name: tg.initDataUnsafe?.user?.first_name || 'Player',
             characterCreated: false,
             selectedClass: null,
@@ -936,31 +839,14 @@
             { id: 4, name: '🐉 Дракон', level: 20, hp: 500, atk: 60, exp: 500, gold: 1000 }
         ];
 
-        // Загрузка игры
         window.onload = async function() {
             await sleep(1500);
-            await checkExistingCharacter();
             document.getElementById('loading').classList.add('hidden');
+            showCharacterCreation();
         };
 
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        async function checkExistingCharacter() {
-            try {
-                tg.sendData(JSON.stringify({ action: 'get_profile' }));
-                setTimeout(() => {
-                    if (!gameState.characterCreated) {
-                        showCharacterCreation();
-                    } else {
-                        showGameScreen();
-                    }
-                }, 1000);
-            } catch (e) {
-                console.error('Error:', e);
-                showCharacterCreation();
-            }
         }
 
         function showCharacterCreation() {
@@ -972,34 +858,28 @@
             updateUI();
         }
 
-        // Выбор класса
         document.querySelectorAll('.class-card').forEach(card => {
             card.addEventListener('click', function() {
                 document.querySelectorAll('.class-card').forEach(c => c.classList.remove('selected'));
                 this.classList.add('selected');
                 gameState.selectedClass = this.dataset.class;
                 
-                // Показываем превью персонажа
-                const imageUrl = this.dataset.image;
                 const previewArea = document.getElementById('characterPreviewArea');
                 const previewImg = document.getElementById('characterPreviewImg');
-                
-                previewImg.src = imageUrl;
+                previewImg.src = this.dataset.image;
                 previewArea.style.display = 'block';
                 
-                const btn = document.getElementById('createCharacterBtn');
-                btn.disabled = !document.getElementById('characterName').value.trim();
+                document.getElementById('createCharacterBtn').disabled = 
+                    !document.getElementById('characterName').value.trim();
             });
         });
 
-        // Ввод имени
         document.getElementById('characterName').addEventListener('input', function() {
-            const btn = document.getElementById('createCharacterBtn');
-            btn.disabled = !this.value.trim() || !gameState.selectedClass;
+            document.getElementById('createCharacterBtn').disabled = 
+                !this.value.trim() || !gameState.selectedClass;
         });
 
-        // Создание персонажа
-        document.getElementById('createCharacterBtn').addEventListener('click', async function() {
+        document.getElementById('createCharacterBtn').addEventListener('click', function() {
             const name = document.getElementById('characterName').value.trim();
             if (!name || !gameState.selectedClass) return;
 
@@ -1010,7 +890,6 @@
             }));
 
             showNotification('✅ Персонаж создан!');
-            
             setTimeout(() => {
                 document.getElementById('characterCreation').classList.remove('active');
                 showGameScreen();
@@ -1020,20 +899,17 @@
             }, 1000);
         });
 
-        // Обновление UI
         function updateUI() {
             document.getElementById('playerName').textContent = gameState.name;
             document.getElementById('playerLevel').textContent = `Ур. ${gameState.level}`;
             document.getElementById('playerHp').textContent = `${gameState.hp}/${gameState.hpMax}`;
             document.getElementById('playerGold').textContent = gameState.gold;
             
-            // Устанавливаем изображение персонажа
             const characterImg = CHARACTER_IMAGES[gameState.class] || CHARACTER_IMAGES['warrior'];
             document.getElementById('characterSprite').src = characterImg;
             document.getElementById('playerAvatarImg').src = characterImg;
         }
 
-        // Открытие битвы
         function openBattle() {
             const modal = document.getElementById('battleModal');
             const list = document.getElementById('monstersList');
@@ -1047,14 +923,10 @@
                         <div class="monster-icon">${monster.name.split(' ')[0]}</div>
                         <div class="monster-details">
                             <h3>${monster.name}</h3>
-                            <div class="monster-stats">
-                                Уровень ${monster.level} | HP: ${monster.hp} | ATK: ${monster.atk}
-                            </div>
+                            <div class="monster-stats">Ур. ${monster.level} | HP: ${monster.hp}</div>
                         </div>
                     </div>
-                    <button class="fight-btn" onclick="fightMonster(${monster.id})">
-                        ⚔️ БОЙ
-                    </button>
+                    <button class="fight-btn" onclick="fightMonster(${monster.id})">⚔️ БОЙ</button>
                 `;
                 list.appendChild(card);
             });
@@ -1062,68 +934,35 @@
             modal.classList.add('active');
         }
 
-        // Бой с монстром
         async function fightMonster(monsterId) {
             const monster = MONSTERS[monsterId];
             showNotification(`⚔️ Бой с ${monster.name}!`);
-            
             closeModal('battleModal');
             
-            tg.sendData(JSON.stringify({
-                action: 'battle',
-                monster_id: monsterId
-            }));
-
+            tg.sendData(JSON.stringify({ action: 'battle', monster_id: monsterId }));
             await sleep(2000);
             
             const win = Math.random() > 0.3;
             if (win) {
-                const gold = monster.gold;
-                const exp = monster.exp;
-                gameState.gold += gold;
+                gameState.gold += monster.gold;
                 updateUI();
-                showNotification(`🏆 Победа! +${gold}🪙 +${exp}⭐`);
+                showNotification(`🏆 Победа! +${monster.gold}🪙`);
             } else {
                 showNotification('💀 Поражение...', true);
             }
         }
 
-        // Открытие рейда
-        function openRaid() {
-            showNotification('👹 Рейды скоро будут доступны!');
-        }
+        function openRaid() { showNotification('👹 Скоро будет!'); }
+        function openCraft() { showNotification('🔨 Скоро будет!'); }
+        function openShop() { showNotification('🏪 Скоро будет!'); }
+        function showInventory() { showNotification('🎒 Скоро будет!'); }
+        function showProfile() { showNotification('📊 Скоро будет!'); }
+        function showSettings() { showNotification('⚙️ Скоро будет!'); }
 
-        // Открытие крафта
-        function openCraft() {
-            showNotification('🔨 Система крафта в разработке!');
-        }
-
-        // Открытие магазина
-        function openShop() {
-            showNotification('🏪 Магазин скоро откроется!');
-        }
-
-        // Показать инвентарь
-        function showInventory() {
-            showNotification('🎒 Инвентарь в разработке!');
-        }
-
-        // Показать профиль
-        function showProfile() {
-            showNotification('📊 Профиль в разработке!');
-        }
-
-        // Показать настройки
-        function showSettings() {
-            showNotification('⚙️ Настройки в разработке!');
-        }
-
-        // Закрытие модалки
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
         }
 
-        // Уведомления
         function showNotification(message, isError = false) {
             const notif = document.createElement('div');
             notif.className = `notification ${isError ? 'error' : ''}`;
@@ -1132,30 +971,6 @@
             setTimeout(() => notif.remove(), 3000);
         }
 
-        // Обработка сообщений от бота
-        tg.onEvent('message', (data) => {
-            try {
-                const response = JSON.parse(data);
-                console.log('Bot response:', response);
-                
-                if (response.success) {
-                    if (response.profile) {
-                        gameState.characterCreated = true;
-                        gameState.name = response.profile.name;
-                        gameState.level = response.profile.level || 1;
-                        gameState.hp = response.profile.hp || 100;
-                        gameState.hpMax = response.profile.hp_max || 100;
-                        gameState.gold = response.profile.gold || 100;
-                        gameState.class = response.profile.class || 'warrior';
-                        updateUI();
-                    }
-                }
-            } catch (e) {
-                console.error('Parse error:', e);
-            }
-        });
-
-        // Закрытие модалок по клику вне
         window.onclick = function(event) {
             if (event.target.classList.contains('modal')) {
                 event.target.classList.remove('active');
