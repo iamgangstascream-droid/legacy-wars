@@ -16,27 +16,48 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background: #0a0a0a;
             color: #ffffff;
             min-height: 100vh;
             overflow: hidden;
             position: relative;
         }
 
-        /* Animated Background */
-        .bg-animation {
+        /* Background Image - Плавающие острова */
+        .game-background {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255, 119, 198, 0.2) 0%, transparent 50%),
-                radial-gradient(circle at 40% 20%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            background-image: url('images/background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: -2;
+            animation: backgroundZoom 20s ease-in-out infinite;
         }
 
+        @keyframes backgroundZoom {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Затемнение фона */
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, 
+                rgba(26, 26, 46, 0.7) 0%, 
+                rgba(22, 33, 62, 0.6) 50%, 
+                rgba(15, 52, 96, 0.7) 100%);
+            z-index: -1;
+        }
+
+        /* Звёзды */
         .stars {
             position: fixed;
             top: 0;
@@ -52,12 +73,13 @@
             background-repeat: repeat;
             background-size: 200px 200px;
             animation: twinkle 5s ease-in-out infinite;
-            opacity: 0.5;
+            opacity: 0.6;
+            pointer-events: none;
         }
 
         @keyframes twinkle {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 0.8; }
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 0.9; }
         }
 
         /* Loading Screen */
@@ -120,7 +142,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.95);
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(10px);
             z-index: 5000;
             padding: 20px;
             overflow-y: auto;
@@ -144,7 +167,7 @@
 
         .creation-subtitle {
             font-size: 16px;
-            color: #aaa;
+            color: #ccc;
             margin-bottom: 30px;
             text-align: center;
         }
@@ -153,88 +176,38 @@
             width: 100%;
             max-width: 300px;
             padding: 15px;
-            border: 2px solid rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
             border-radius: 15px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.15);
             color: white;
             font-size: 16px;
             margin-bottom: 30px;
             text-align: center;
+            backdrop-filter: blur(10px);
         }
 
         .name-input::placeholder {
-            color: #888;
-        }
-
-        .class-selection {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            width: 100%;
-            max-width: 500px;
-            margin-bottom: 20px;
-        }
-
-        .class-card {
-            background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 15px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .class-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255,255,255,0.2);
-        }
-
-        .class-card.selected {
-            border-color: #f39c12;
-            background: rgba(243, 156, 18, 0.3);
-            box-shadow: 0 0 20px rgba(243, 156, 18, 0.5);
-        }
-
-        .class-preview {
-            width: 100%;
-            height: 120px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            object-fit: cover;
-            background: rgba(0,0,0,0.3);
-        }
-
-        .class-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
-
-        .class-name {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .class-stats {
-            font-size: 11px;
             color: #aaa;
+        }
+
+        .name-input:focus {
+            outline: none;
+            border-color: #f39c12;
+            box-shadow: 0 0 15px rgba(243, 156, 18, 0.5);
         }
 
         /* Character Preview Area */
         .character-preview-area {
             width: 100%;
-            max-width: 400px;
-            height: 450px;
+            max-width: 350px;
+            height: 400px;
             margin: 20px 0;
             border-radius: 20px;
             overflow: hidden;
             position: relative;
             background: rgba(0,0,0,0.5);
-            border: 3px solid rgba(243, 156, 18, 0.5);
-            box-shadow: 0 0 30px rgba(243, 156, 18, 0.3);
+            border: 3px solid rgba(243, 156, 18, 0.6);
+            box-shadow: 0 0 40px rgba(243, 156, 18, 0.4);
         }
 
         .character-preview-img {
@@ -255,8 +228,63 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle, rgba(243, 156, 18, 0.2) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(243, 156, 18, 0.3) 0%, transparent 70%);
             pointer-events: none;
+        }
+
+        .class-selection {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 20px;
+        }
+
+        .class-card {
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .class-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255,255,255,0.25);
+            border-color: rgba(243, 156, 18, 0.8);
+        }
+
+        .class-card.selected {
+            border-color: #f39c12;
+            background: rgba(243, 156, 18, 0.35);
+            box-shadow: 0 0 25px rgba(243, 156, 18, 0.6);
+            transform: scale(1.05);
+        }
+
+        .class-preview {
+            width: 100%;
+            height: 100px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            object-fit: cover;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .class-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .class-stats {
+            font-size: 11px;
+            color: #ccc;
         }
 
         .create-btn {
@@ -270,7 +298,8 @@
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 20px rgba(243, 156, 18, 0.4);
         }
 
         .create-btn:active {
@@ -280,6 +309,7 @@
         .create-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            box-shadow: none;
         }
 
         /* Main Game Screen */
@@ -300,15 +330,16 @@
 
         /* Top Bar */
         .top-bar {
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(15px);
             border-radius: 20px;
             padding: 15px;
             margin-bottom: 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
         }
 
         .player-info {
@@ -346,11 +377,13 @@
             font-weight: bold;
             font-size: 16px;
             margin-bottom: 3px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
         .player-level {
             font-size: 12px;
             color: #f39c12;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
 
         .player-stats {
@@ -364,6 +397,10 @@
             gap: 5px;
             font-size: 14px;
             font-weight: 600;
+            background: rgba(255,255,255,0.1);
+            padding: 5px 10px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
         }
 
         .stat-icon {
@@ -383,8 +420,8 @@
         /* Character Display */
         .character-display {
             position: relative;
-            width: 300px;
-            height: 450px;
+            width: 320px;
+            height: 480px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -394,23 +431,23 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            filter: drop-shadow(0 0 30px rgba(255,255,255,0.3));
+            filter: drop-shadow(0 0 30px rgba(255,255,255,0.4));
             animation: characterFloat 3s ease-in-out infinite;
             border-radius: 20px;
         }
 
         .character-glow {
             position: absolute;
-            width: 280px;
-            height: 280px;
+            width: 300px;
+            height: 300px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(243, 156, 18, 0.4) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(243, 156, 18, 0.5) 0%, transparent 70%);
             animation: glowPulse 2s ease-in-out infinite;
         }
 
         @keyframes glowPulse {
             0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 0.8; }
         }
 
         /* Side Buttons */
@@ -423,8 +460,8 @@
 
         .side-btn {
             position: absolute;
-            width: 80px;
-            height: 80px;
+            width: 85px;
+            height: 85px;
             border-radius: 20px;
             display: flex;
             flex-direction: column;
@@ -433,43 +470,48 @@
             cursor: pointer;
             pointer-events: all;
             transition: all 0.3s;
-            border: 2px solid rgba(255,255,255,0.3);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.4);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
         }
 
         .side-btn:active {
             transform: scale(0.9);
         }
 
+        .side-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        }
+
         .side-btn.battle {
             left: 10px;
             top: 50%;
             transform: translateY(-50%);
-            background: linear-gradient(135deg, rgba(231, 76, 60, 0.8), rgba(192, 57, 43, 0.8));
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.85), rgba(192, 57, 43, 0.85));
         }
 
         .side-btn.raid {
             right: 10px;
             top: 50%;
             transform: translateY(-50%);
-            background: linear-gradient(135deg, rgba(155, 89, 182, 0.8), rgba(142, 68, 173, 0.8));
+            background: linear-gradient(135deg, rgba(155, 89, 182, 0.85), rgba(142, 68, 173, 0.85));
         }
 
         .side-btn.craft {
             left: 10px;
             bottom: 20px;
-            background: linear-gradient(135deg, rgba(46, 204, 113, 0.8), rgba(39, 174, 96, 0.8));
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.85), rgba(39, 174, 96, 0.85));
         }
 
         .side-btn.shop {
             right: 10px;
             bottom: 20px;
-            background: linear-gradient(135deg, rgba(241, 196, 15, 0.8), rgba(243, 156, 18, 0.8));
+            background: linear-gradient(135deg, rgba(241, 196, 15, 0.85), rgba(243, 156, 18, 0.85));
         }
 
         .btn-icon {
-            font-size: 32px;
+            font-size: 36px;
             margin-bottom: 5px;
         }
 
@@ -477,6 +519,7 @@
             font-size: 11px;
             font-weight: bold;
             text-align: center;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
 
         /* Bottom Menu */
@@ -485,16 +528,17 @@
             justify-content: space-around;
             gap: 10px;
             padding: 10px;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7);
             border-radius: 20px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .menu-btn {
             flex: 1;
             padding: 12px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
             border-radius: 15px;
             color: white;
             font-size: 12px;
@@ -504,10 +548,15 @@
             flex-direction: column;
             align-items: center;
             gap: 5px;
+            backdrop-filter: blur(10px);
         }
 
         .menu-btn:active {
             transform: scale(0.95);
+            background: rgba(255,255,255,0.25);
+        }
+
+        .menu-btn:hover {
             background: rgba(255,255,255,0.2);
         }
 
@@ -523,7 +572,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(10px);
             z-index: 3000;
             padding: 20px;
             overflow-y: auto;
@@ -536,13 +586,13 @@
         }
 
         .modal-content {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            background: linear-gradient(135deg, rgba(26,26,46,0.95), rgba(22,33,62,0.95));
             border-radius: 25px;
             padding: 30px;
             max-width: 450px;
             width: 100%;
-            border: 2px solid rgba(255,255,255,0.1);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
         }
 
         .modal-title {
@@ -569,16 +619,17 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
+            background: rgba(255,255,255,0.1);
         }
 
         .close-modal:hover {
             color: #fff;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.2);
         }
 
         /* Monster Cards */
         .monster-card {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.15);
             border-radius: 15px;
             padding: 15px;
             margin-bottom: 12px;
@@ -588,12 +639,13 @@
             cursor: pointer;
             transition: all 0.3s;
             border: 2px solid transparent;
+            backdrop-filter: blur(10px);
         }
 
         .monster-card:hover {
             transform: translateX(10px);
             border-color: #e74c3c;
-            background: rgba(231, 76, 60, 0.2);
+            background: rgba(231, 76, 60, 0.25);
         }
 
         .monster-info {
@@ -613,7 +665,7 @@
 
         .monster-stats {
             font-size: 11px;
-            color: #aaa;
+            color: #ccc;
         }
 
         .fight-btn {
@@ -625,6 +677,11 @@
             font-weight: bold;
             cursor: pointer;
             font-size: 12px;
+            box-shadow: 0 3px 10px rgba(231, 76, 60, 0.4);
+        }
+
+        .fight-btn:active {
+            transform: scale(0.95);
         }
 
         /* Notifications */
@@ -641,6 +698,7 @@
             z-index: 10000;
             animation: slideDown 0.3s ease-out;
             box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
         }
 
         .notification.error {
@@ -660,26 +718,26 @@
             }
 
             .class-preview {
-                height: 100px;
+                height: 90px;
             }
 
             .character-preview-area {
-                height: 350px;
-                max-width: 300px;
+                height: 320px;
+                max-width: 280px;
             }
 
             .character-display {
-                width: 260px;
-                height: 380px;
+                width: 280px;
+                height: 420px;
             }
 
             .side-btn {
-                width: 70px;
-                height: 70px;
+                width: 75px;
+                height: 75px;
             }
 
             .btn-icon {
-                font-size: 28px;
+                font-size: 32px;
             }
 
             .btn-label {
@@ -695,12 +753,18 @@
                 height: 50px;
                 font-size: 28px;
             }
+
+            .stat-item {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Background Animation -->
-    <div class="bg-animation"></div>
+    <!-- Background Image -->
+    <div class="game-background"></div>
+    <div class="bg-overlay"></div>
     <div class="stars"></div>
 
     <!-- Loading Screen -->
