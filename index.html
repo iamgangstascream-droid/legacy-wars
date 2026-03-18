@@ -16,7 +16,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             color: #ffffff;
             min-height: 100vh;
             overflow: hidden;
@@ -31,24 +31,33 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 119, 198, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
         }
 
-        .bg-animation::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: moveBackground 20s linear infinite;
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            animation: twinkle 5s ease-in-out infinite;
+            opacity: 0.5;
         }
 
-        @keyframes moveBackground {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(50px, 50px); }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
         }
 
         /* Loading Screen */
@@ -73,9 +82,10 @@
         }
 
         .loading-logo {
-            font-size: 80px;
+            font-size: 100px;
             margin-bottom: 30px;
             animation: pulse 1.5s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(243, 156, 18, 0.5));
         }
 
         @keyframes pulse {
@@ -187,7 +197,7 @@
         }
 
         .class-icon {
-            font-size: 48px;
+            font-size: 64px;
             margin-bottom: 10px;
         }
 
@@ -233,7 +243,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            padding: 20px;
+            padding: 15px;
         }
 
         .game-screen.active {
@@ -241,39 +251,47 @@
             flex-direction: column;
         }
 
-        /* Header Stats */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background: rgba(0,0,0,0.4);
-            border-radius: 15px;
-            margin-bottom: 20px;
+        /* Top Bar */
+        .top-bar {
+            background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .player-info {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .player-avatar {
-            width: 50px;
-            height: 50px;
+            width: 55px;
+            height: 55px;
             border-radius: 50%;
             background: linear-gradient(135deg, #f39c12, #e74c3c);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 32px;
             border: 3px solid #fff;
+            box-shadow: 0 0 15px rgba(243, 156, 18, 0.5);
+        }
+
+        .player-details {
+            display: flex;
+            flex-direction: column;
         }
 
         .player-name {
             font-weight: bold;
             font-size: 16px;
+            margin-bottom: 3px;
         }
 
         .player-level {
@@ -281,104 +299,168 @@
             color: #f39c12;
         }
 
-        .stats {
+        .player-stats {
             display: flex;
             gap: 15px;
         }
 
-        .stat {
+        .stat-item {
             display: flex;
             align-items: center;
             gap: 5px;
             font-size: 14px;
+            font-weight: 600;
         }
 
         .stat-icon {
             font-size: 18px;
         }
 
-        /* Main Buttons Grid */
-        .main-buttons {
+        /* Main Content */
+        .main-content {
             flex: 1;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(2, 1fr);
-            gap: 20px;
-            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 20px 0;
         }
 
-        .main-btn {
+        /* Character Display */
+        .character-display {
             position: relative;
-            background: rgba(255,255,255,0.1);
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 25px;
+            width: 280px;
+            height: 380px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .character-sprite {
+            font-size: 200px;
+            filter: drop-shadow(0 0 30px rgba(255,255,255,0.3));
+            animation: characterFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes characterFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .character-glow {
+            position: absolute;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(243, 156, 18, 0.4) 0%, transparent 70%);
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        /* Side Buttons */
+        .side-buttons {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .side-btn {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            pointer-events: all;
             transition: all 0.3s;
+            border: 2px solid rgba(255,255,255,0.3);
             backdrop-filter: blur(10px);
-            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
 
-        .main-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1));
-            opacity: 0;
-            transition: opacity 0.3s;
+        .side-btn:active {
+            transform: scale(0.9);
         }
 
-        .main-btn:hover::before {
-            opacity: 1;
+        .side-btn.battle {
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.8), rgba(192, 57, 43, 0.8));
         }
 
-        .main-btn:active {
-            transform: scale(0.95);
+        .side-btn.raid {
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, rgba(155, 89, 182, 0.8), rgba(142, 68, 173, 0.8));
         }
 
-        .main-btn.battle {
-            background: linear-gradient(135deg, rgba(231, 76, 60, 0.3), rgba(192, 57, 43, 0.3));
-            border-color: #e74c3c;
+        .side-btn.craft {
+            left: 10px;
+            bottom: 20px;
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.8), rgba(39, 174, 96, 0.8));
         }
 
-        .main-btn.raid {
-            background: linear-gradient(135deg, rgba(155, 89, 182, 0.3), rgba(142, 68, 173, 0.3));
-            border-color: #9b59b6;
-        }
-
-        .main-btn.craft {
-            background: linear-gradient(135deg, rgba(46, 204, 113, 0.3), rgba(39, 174, 96, 0.3));
-            border-color: #2ecc71;
-        }
-
-        .main-btn.shop {
-            background: linear-gradient(135deg, rgba(241, 196, 15, 0.3), rgba(243, 156, 18, 0.3));
-            border-color: #f1c40f;
+        .side-btn.shop {
+            right: 10px;
+            bottom: 20px;
+            background: linear-gradient(135deg, rgba(241, 196, 15, 0.8), rgba(243, 156, 18, 0.8));
         }
 
         .btn-icon {
-            font-size: 64px;
-            margin-bottom: 15px;
-            z-index: 1;
+            font-size: 32px;
+            margin-bottom: 5px;
         }
 
-        .btn-text {
-            font-size: 24px;
+        .btn-label {
+            font-size: 11px;
             font-weight: bold;
-            z-index: 1;
+            text-align: center;
         }
 
-        .btn-desc {
+        /* Bottom Menu */
+        .bottom-menu {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .menu-btn {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 15px;
+            color: white;
             font-size: 12px;
-            color: #aaa;
-            margin-top: 5px;
-            z-index: 1;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .menu-btn:active {
+            transform: scale(0.95);
+            background: rgba(255,255,255,0.2);
+        }
+
+        .menu-icon {
+            font-size: 24px;
         }
 
         /* Modals */
@@ -403,17 +485,18 @@
 
         .modal-content {
             background: linear-gradient(135deg, #1a1a2e, #16213e);
-            border-radius: 20px;
+            border-radius: 25px;
             padding: 30px;
-            max-width: 500px;
+            max-width: 450px;
             width: 100%;
             border: 2px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
 
         .modal-title {
             font-size: 28px;
             font-weight: bold;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             text-align: center;
             background: linear-gradient(135deg, #f39c12, #e74c3c);
             -webkit-background-clip: text;
@@ -424,22 +507,29 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            font-size: 32px;
+            font-size: 36px;
             cursor: pointer;
             color: #aaa;
             transition: color 0.3s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
         }
 
         .close-modal:hover {
             color: #fff;
+            background: rgba(255,255,255,0.1);
         }
 
         /* Monster Cards */
         .monster-card {
             background: rgba(255,255,255,0.1);
             border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
+            padding: 15px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -465,23 +555,24 @@
         }
 
         .monster-details h3 {
-            font-size: 18px;
+            font-size: 16px;
             margin-bottom: 5px;
         }
 
         .monster-stats {
-            font-size: 12px;
+            font-size: 11px;
             color: #aaa;
         }
 
         .fight-btn {
-            padding: 12px 24px;
+            padding: 10px 20px;
             background: linear-gradient(135deg, #e74c3c, #c0392b);
             border: none;
             border-radius: 10px;
             color: white;
             font-weight: bold;
             cursor: pointer;
+            font-size: 12px;
         }
 
         /* Notifications */
@@ -511,21 +602,36 @@
 
         /* Responsive */
         @media (max-width: 480px) {
-            .main-buttons {
-                gap: 15px;
-                padding: 15px;
+            .character-display {
+                width: 240px;
+                height: 320px;
+            }
+
+            .character-sprite {
+                font-size: 160px;
+            }
+
+            .side-btn {
+                width: 70px;
+                height: 70px;
             }
 
             .btn-icon {
-                font-size: 48px;
+                font-size: 28px;
             }
 
-            .btn-text {
-                font-size: 20px;
+            .btn-label {
+                font-size: 10px;
             }
 
-            .class-selection {
-                grid-template-columns: 1fr;
+            .top-bar {
+                padding: 12px;
+            }
+
+            .player-avatar {
+                width: 50px;
+                height: 50px;
+                font-size: 28px;
             }
         }
     </style>
@@ -533,6 +639,7 @@
 <body>
     <!-- Background Animation -->
     <div class="bg-animation"></div>
+    <div class="stars"></div>
 
     <!-- Loading Screen -->
     <div class="loading" id="loading">
@@ -578,52 +685,70 @@
 
     <!-- Main Game Screen -->
     <div class="game-screen" id="gameScreen">
-        <!-- Header -->
-        <div class="header">
+        <!-- Top Bar -->
+        <div class="top-bar">
             <div class="player-info">
                 <div class="player-avatar" id="playerAvatar">⚔️</div>
-                <div>
+                <div class="player-details">
                     <div class="player-name" id="playerName">Игрок</div>
                     <div class="player-level" id="playerLevel">Ур. 1</div>
                 </div>
             </div>
-            <div class="stats">
-                <div class="stat">
+            <div class="player-stats">
+                <div class="stat-item">
                     <span class="stat-icon">❤️</span>
                     <span id="playerHp">100/100</span>
                 </div>
-                <div class="stat">
+                <div class="stat-item">
                     <span class="stat-icon">🪙</span>
                     <span id="playerGold">100</span>
                 </div>
             </div>
         </div>
 
-        <!-- Main Buttons -->
-        <div class="main-buttons">
-            <div class="main-btn battle" onclick="openBattle()">
-                <div class="btn-icon">⚔️</div>
-                <div class="btn-text">БИТВА</div>
-                <div class="btn-desc">Сражайся с монстрами</div>
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Buttons -->
+            <div class="side-buttons">
+                <div class="side-btn battle" onclick="openBattle()">
+                    <div class="btn-icon">⚔️</div>
+                    <div class="btn-label">БИТВА</div>
+                </div>
+                <div class="side-btn raid" onclick="openRaid()">
+                    <div class="btn-icon">👹</div>
+                    <div class="btn-label">РЕЙД</div>
+                </div>
+                <div class="side-btn craft" onclick="openCraft()">
+                    <div class="btn-icon">🔨</div>
+                    <div class="btn-label">КРАФТ</div>
+                </div>
+                <div class="side-btn shop" onclick="openShop()">
+                    <div class="btn-icon">🏪</div>
+                    <div class="btn-label">МАГАЗИН</div>
+                </div>
             </div>
-            
-            <div class="main-btn raid" onclick="openRaid()">
-                <div class="btn-icon">👹</div>
-                <div class="btn-text">РЕЙД</div>
-                <div class="btn-desc">Боссы с друзьями</div>
+
+            <!-- Character Display -->
+            <div class="character-display">
+                <div class="character-glow"></div>
+                <div class="character-sprite" id="characterSprite">⚔️</div>
             </div>
-            
-            <div class="main-btn craft" onclick="openCraft()">
-                <div class="btn-icon">🔨</div>
-                <div class="btn-text">КРАФТ</div>
-                <div class="btn-desc">Создавай предметы</div>
-            </div>
-            
-            <div class="main-btn shop" onclick="openShop()">
-                <div class="btn-icon">🏪</div>
-                <div class="btn-text">МАГАЗИН</div>
-                <div class="btn-desc">Покупай снаряжение</div>
-            </div>
+        </div>
+
+        <!-- Bottom Menu -->
+        <div class="bottom-menu">
+            <button class="menu-btn" onclick="showInventory()">
+                <span class="menu-icon">🎒</span>
+                <span>Инвентарь</span>
+            </button>
+            <button class="menu-btn" onclick="showProfile()">
+                <span class="menu-icon">📊</span>
+                <span>Профиль</span>
+            </button>
+            <button class="menu-btn" onclick="showSettings()">
+                <span class="menu-icon">⚙️</span>
+                <span>Настройки</span>
+            </button>
         </div>
     </div>
 
@@ -648,7 +773,12 @@
             username: tg.initDataUnsafe?.user?.username || 'Player',
             name: tg.initDataUnsafe?.user?.first_name || 'Player',
             characterCreated: false,
-            selectedClass: null
+            selectedClass: null,
+            level: 1,
+            hp: 100,
+            hpMax: 100,
+            gold: 100,
+            class: 'warrior'
         };
 
         const MONSTERS = [
@@ -659,13 +789,17 @@
             { id: 4, name: '🐉 Дракон', level: 20, hp: 500, atk: 60, exp: 500, gold: 1000 }
         ];
 
+        const CLASS_ICONS = {
+            'warrior': '⚔️',
+            'mage': '🔮',
+            'rogue': '🗡️',
+            'paladin': '🛡️'
+        };
+
         // Загрузка игры
         window.onload = async function() {
             await sleep(1500);
-            
-            // Проверка существующего персонажа
             await checkExistingCharacter();
-            
             document.getElementById('loading').classList.add('hidden');
         };
 
@@ -676,10 +810,7 @@
         async function checkExistingCharacter() {
             try {
                 tg.sendData(JSON.stringify({ action: 'get_profile' }));
-                
-                // Ждём ответ от бота (в реальной игре нужно обработать сообщение)
                 setTimeout(() => {
-                    // Если нет персонажа - показываем создание
                     if (!gameState.characterCreated) {
                         showCharacterCreation();
                     } else {
@@ -736,9 +867,20 @@
                 document.getElementById('characterCreation').classList.remove('active');
                 showGameScreen();
                 gameState.name = name;
+                gameState.class = gameState.selectedClass;
                 updateUI();
             }, 1000);
         });
+
+        // Обновление UI
+        function updateUI() {
+            document.getElementById('playerName').textContent = gameState.name;
+            document.getElementById('playerLevel').textContent = `Ур. ${gameState.level}`;
+            document.getElementById('playerHp').textContent = `${gameState.hp}/${gameState.hpMax}`;
+            document.getElementById('playerGold').textContent = gameState.gold;
+            document.getElementById('playerAvatar').textContent = CLASS_ICONS[gameState.class] || '⚔️';
+            document.getElementById('characterSprite').textContent = CLASS_ICONS[gameState.class] || '⚔️';
+        }
 
         // Открытие битвы
         function openBattle() {
@@ -760,7 +902,7 @@
                         </div>
                     </div>
                     <button class="fight-btn" onclick="fightMonster(${monster.id})">
-                        ⚔️ Бой
+                        ⚔️ БОЙ
                     </button>
                 `;
                 list.appendChild(card);
@@ -776,19 +918,19 @@
             
             closeModal('battleModal');
             
-            // Отправляем данные боту
             tg.sendData(JSON.stringify({
                 action: 'battle',
                 monster_id: monsterId
             }));
 
-            // Симуляция боя (в реальной игре ждём ответ от бота)
             await sleep(2000);
             
             const win = Math.random() > 0.3;
             if (win) {
                 const gold = monster.gold;
                 const exp = monster.exp;
+                gameState.gold += gold;
+                updateUI();
                 showNotification(`🏆 Победа! +${gold}🪙 +${exp}⭐`);
             } else {
                 showNotification('💀 Поражение...', true);
@@ -810,15 +952,24 @@
             showNotification('🏪 Магазин скоро откроется!');
         }
 
+        // Показать инвентарь
+        function showInventory() {
+            showNotification('🎒 Инвентарь в разработке!');
+        }
+
+        // Показать профиль
+        function showProfile() {
+            showNotification('📊 Профиль в разработке!');
+        }
+
+        // Показать настройки
+        function showSettings() {
+            showNotification('⚙️ Настройки в разработке!');
+        }
+
         // Закрытие модалки
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
-        }
-
-        // Обновление UI
-        function updateUI() {
-            document.getElementById('playerName').textContent = gameState.name;
-            // Здесь можно добавить загрузку реальных данных
         }
 
         // Уведомления
@@ -840,12 +991,25 @@
                     if (response.profile) {
                         gameState.characterCreated = true;
                         gameState.name = response.profile.name;
+                        gameState.level = response.profile.level || 1;
+                        gameState.hp = response.profile.hp || 100;
+                        gameState.hpMax = response.profile.hp_max || 100;
+                        gameState.gold = response.profile.gold || 100;
+                        gameState.class = response.profile.class || 'warrior';
+                        updateUI();
                     }
                 }
             } catch (e) {
                 console.error('Parse error:', e);
             }
         });
+
+        // Закрытие модалок по клику вне
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
     </script>
 </body>
 </html>
