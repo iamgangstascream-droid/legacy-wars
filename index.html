@@ -6,33 +6,45 @@
     <title>Legacy Wars</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #0a0a0a;
             color: #ffffff;
             min-height: 100vh;
             overflow: hidden;
+            position: relative;
         }
+
+        /* Background with parallax */
         .game-background {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background-image: url('images/background.jpg');
             background-size: cover;
-            background-position: center;
-            z-index: -2;
+            background-position: center bottom;
+            z-index: -3;
             animation: backgroundZoom 30s ease-in-out infinite;
         }
+
         @keyframes backgroundZoom {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.08); }
+            50% { transform: scale(1.05); }
         }
+
         .bg-overlay {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(180deg, rgba(26,26,46,0.5) 0%, rgba(15,52,96,0.4) 100%);
-            z-index: -1;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(180deg, 
+                rgba(26,26,46,0.4) 0%, 
+                rgba(15,52,96,0.3) 100%);
+            z-index: -2;
         }
+
+        /* Loading */
         .loading {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -62,7 +74,7 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         .loading-text { margin-top: 20px; font-size: 18px; color: #aaa; }
-        
+
         /* Character Creation */
         .character-creation {
             display: none;
@@ -76,331 +88,341 @@
         }
         .character-creation.active { display: flex; flex-direction: column; align-items: center; }
         .creation-title {
-            font-size: 32px;
-            font-weight: bold;
-            margin: 30px 0 20px;
-            text-align: center;
+            font-size: 32px; font-weight: bold; margin: 30px 0 20px; text-align: center;
             background: linear-gradient(135deg, #f39c12, #e74c3c);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
         .creation-subtitle { font-size: 16px; color: #ccc; margin-bottom: 30px; text-align: center; }
         .name-input {
-            width: 100%;
-            max-width: 300px;
-            padding: 15px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 15px;
-            background: rgba(255,255,255,0.15);
-            color: white;
-            font-size: 16px;
-            margin-bottom: 30px;
-            text-align: center;
+            width: 100%; max-width: 300px; padding: 15px;
+            border: 2px solid rgba(255,255,255,0.3); border-radius: 15px;
+            background: rgba(255,255,255,0.15); color: white;
+            font-size: 16px; margin-bottom: 30px; text-align: center;
         }
         .name-input:focus { outline: none; border-color: #f39c12; }
         .class-selection {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            width: 100%;
-            max-width: 500px;
-            margin-bottom: 20px;
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 15px; width: 100%; max-width: 500px; margin-bottom: 20px;
         }
         .class-card {
-            background: rgba(255,255,255,0.15);
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 15px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
+            background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 15px; padding: 15px; text-align: center; cursor: pointer;
             transition: all 0.3s;
         }
         .class-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.25); }
         .class-card.selected {
-            border-color: #f39c12;
-            background: rgba(243, 156, 18, 0.35);
-            box-shadow: 0 0 25px rgba(243, 156, 18, 0.6);
-            transform: scale(1.05);
+            border-color: #f39c12; background: rgba(243,156,18,0.35);
+            box-shadow: 0 0 25px rgba(243,156,18,0.6); transform: scale(1.05);
         }
         .class-icon { font-size: 48px; margin-bottom: 10px; }
         .class-name { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
         .class-stats { font-size: 11px; color: #ccc; }
         .create-btn {
-            width: 100%;
-            max-width: 300px;
-            padding: 18px;
+            width: 100%; max-width: 300px; padding: 18px;
             background: linear-gradient(135deg, #f39c12, #e74c3c);
-            border: none;
-            border-radius: 15px;
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
+            border: none; border-radius: 15px; color: white;
+            font-size: 18px; font-weight: bold; cursor: pointer;
         }
         .create-btn:active { transform: scale(0.95); }
         .create-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        /* Game Screen */
+
+        /* Main Game Screen */
         .game-screen {
-            display: none;
-            position: fixed;
+            display: none; position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             padding: 15px;
         }
         .game-screen.active { display: flex; flex-direction: column; }
+
+        /* Top Bar */
         .top-bar {
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 15px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(15px);
+            border-radius: 20px; padding: 15px; margin-bottom: 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            border: 1px solid rgba(255,255,255,0.2); z-index: 100;
         }
         .player-info { display: flex; align-items: center; gap: 12px; }
         .player-avatar {
-            width: 55px; height: 55px;
-            border-radius: 50%;
+            width: 55px; height: 55px; border-radius: 50%;
             background: linear-gradient(135deg, #f39c12, #e74c3c);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            border: 3px solid #fff;
-            overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px; border: 3px solid #fff; overflow: hidden;
         }
-        .player-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .player-details { display: flex; flex-direction: column; }
         .player-name { font-weight: bold; font-size: 16px; }
         .player-level { font-size: 12px; color: #f39c12; }
         .player-stats { display: flex; gap: 15px; }
         .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 14px;
-            font-weight: 600;
+            display: flex; align-items: center; gap: 5px;
+            font-size: 14px; font-weight: 600;
             background: rgba(255,255,255,0.1);
-            padding: 5px 10px;
-            border-radius: 10px;
+            padding: 5px 10px; border-radius: 10px;
         }
-        
-        /* Character Display */
+
+        /* Character Scene - INTEGRATED INTO WORLD */
         .character-scene {
             flex: 1;
             position: relative;
             display: flex;
             align-items: flex-end;
             justify-content: center;
-            padding-bottom: 50px;
+            padding-bottom: 80px;
+            perspective: 1000px;
+            overflow: hidden;
         }
-        .character-sprite {
-            width: 300px;
-            height: 450px;
-            object-fit: contain;
-            position: relative;
-            z-index: 1;
-            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6));
-            animation: characterFloat 4s ease-in-out infinite;
-            background: transparent;
-        }
-        @keyframes characterFloat {
-            0%, 100% { transform: translateY(0) rotateY(0deg); }
-            25% { transform: translateY(-15px) rotateY(2deg); }
-            75% { transform: translateY(-10px) rotateY(-2deg); }
-        }
-        .character-glow {
+
+        /* Ground shadow under character */
+        .character-shadow {
             position: absolute;
             bottom: 100px;
-            width: 280px; height: 280px;
-            background: radial-gradient(circle, rgba(243,156,18,0.4) 0%, rgba(231,76,60,0.2) 40%, transparent 70%);
+            width: 250px; height: 80px;
+            background: radial-gradient(ellipse, rgba(0,0,0,0.7) 0%, transparent 70%);
             border-radius: 50%;
-            filter: blur(20px);
-            animation: auraPulse 3s ease-in-out infinite;
-            z-index: 0;
+            filter: blur(15px);
+            animation: shadowPulse 4s ease-in-out infinite;
+            z-index: 1;
         }
+
+        @keyframes shadowPulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.15); opacity: 0.9; }
+        }
+
+        /* Character with depth integration */
+        .character-container {
+            position: relative;
+            width: 350px;
+            height: 500px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 10;
+            filter: drop-shadow(0 30px 60px rgba(0,0,0,0.8));
+            animation: characterFloat 5s ease-in-out infinite;
+            transform-style: preserve-3d;
+        }
+
+        @keyframes characterFloat {
+            0%, 100% { transform: translateY(0) rotateY(0deg); }
+            25% { transform: translateY(-20px) rotateY(3deg); }
+            75% { transform: translateY(-10px) rotateY(-3deg); }
+        }
+
+        .character-sprite {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: transparent;
+            /* Remove background, integrate with scene */
+        }
+
+        .character-emoji {
+            font-size: 180px;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6));
+            animation: emojiFloat 5s ease-in-out infinite;
+        }
+
+        @keyframes emojiFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Aura/glow around character */
+        .character-aura {
+            position: absolute;
+            bottom: 120px;
+            width: 320px; height: 320px;
+            background: radial-gradient(circle, 
+                rgba(243,156,18,0.5) 0%, 
+                rgba(231,76,60,0.3) 40%, 
+                transparent 70%);
+            border-radius: 50%;
+            filter: blur(30px);
+            animation: auraPulse 4s ease-in-out infinite;
+            z-index: 5;
+        }
+
         @keyframes auraPulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.2); opacity: 0.8; }
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.25); opacity: 0.9; }
         }
-        
+
+        /* Atmospheric particles */
+        .particles {
+            position: absolute;
+            bottom: 100px;
+            width: 100%;
+            height: 400px;
+            pointer-events: none;
+            z-index: 8;
+        }
+
+        .particle {
+            position: absolute;
+            width: 6px; height: 6px;
+            background: rgba(243,156,18,0.9);
+            border-radius: 50%;
+            animation: particleFloat 5s ease-in-out infinite;
+            box-shadow: 0 0 15px rgba(243,156,18,0.9);
+        }
+
+        .particle:nth-child(1) { left: 15%; animation-delay: 0s; }
+        .particle:nth-child(2) { left: 35%; animation-delay: 1.2s; }
+        .particle:nth-child(3) { left: 50%; animation-delay: 2.4s; }
+        .particle:nth-child(4) { left: 65%; animation-delay: 0.8s; }
+        .particle:nth-child(5) { left: 85%; animation-delay: 1.6s; }
+        .particle:nth-child(6) { left: 25%; animation-delay: 2s; }
+        .particle:nth-child(7) { left: 75%; animation-delay: 0.5s; }
+
+        @keyframes particleFloat {
+            0%, 100% { transform: translateY(0) scale(1); opacity: 0; }
+            50% { transform: translateY(-150px) scale(1.8); opacity: 1; }
+        }
+
         /* Side Buttons */
         .side-buttons {
             position: absolute;
             width: 100%; height: 100%;
             pointer-events: none;
+            z-index: 100;
         }
         .side-btn {
             position: absolute;
-            width: 85px; height: 85px;
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            pointer-events: all;
+            width: 90px; height: 90px;
+            border-radius: 25px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            cursor: pointer; pointer-events: all;
             transition: all 0.3s;
-            border: 2px solid rgba(255,255,255,0.4);
-            backdrop-filter: blur(15px);
+            border: 3px solid rgba(255,255,255,0.4);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
         }
-        .side-btn:active { transform: scale(0.9); }
+        .side-btn:active { transform: scale(0.88); }
         .side-btn.battle {
-            left: 10px; top: 50%;
-            transform: translateY(-50%);
-            background: linear-gradient(135deg, rgba(231,76,60,0.85), rgba(192,57,43,0.85));
+            left: 15px; top: 50%; transform: translateY(-50%);
+            background: linear-gradient(135deg, rgba(231,76,60,0.9), rgba(192,57,43,0.9));
         }
         .side-btn.raid {
-            right: 10px; top: 50%;
-            transform: translateY(-50%);
-            background: linear-gradient(135deg, rgba(155,89,182,0.85), rgba(142,68,173,0.85));
+            right: 15px; top: 50%; transform: translateY(-50%);
+            background: linear-gradient(135deg, rgba(155,89,182,0.9), rgba(142,68,173,0.9));
         }
         .side-btn.craft {
-            left: 10px; bottom: 20px;
-            background: linear-gradient(135deg, rgba(46,204,113,0.85), rgba(39,174,96,0.85));
+            left: 15px; bottom: 30px;
+            background: linear-gradient(135deg, rgba(46,204,113,0.9), rgba(39,174,96,0.9));
         }
         .side-btn.shop {
-            right: 10px; bottom: 20px;
-            background: linear-gradient(135deg, rgba(241,196,15,0.85), rgba(243,156,18,0.85));
+            right: 15px; bottom: 30px;
+            background: linear-gradient(135deg, rgba(241,196,15,0.9), rgba(243,156,18,0.9));
         }
-        .btn-icon { font-size: 36px; margin-bottom: 5px; }
-        .btn-label { font-size: 11px; font-weight: bold; }
-        
+        .btn-icon { font-size: 40px; margin-bottom: 5px; }
+        .btn-label { font-size: 12px; font-weight: bold; }
+
         /* Bottom Menu */
         .bottom-menu {
-            display: flex;
-            justify-content: space-around;
-            gap: 10px;
-            padding: 10px;
-            background: rgba(0,0,0,0.7);
-            border-radius: 20px;
-            backdrop-filter: blur(15px);
+            display: flex; justify-content: space-around; gap: 10px;
+            padding: 12px; background: rgba(0,0,0,0.8);
+            border-radius: 25px; backdrop-filter: blur(20px);
+            z-index: 100; border: 1px solid rgba(255,255,255,0.2);
         }
         .menu-btn {
-            flex: 1;
-            padding: 12px;
+            flex: 1; padding: 14px;
             background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 15px;
-            color: white;
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 18px; color: white;
+            font-size: 12px; cursor: pointer;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 5px;
+            transition: all 0.3s;
         }
-        .menu-btn:active { transform: scale(0.95); }
-        .menu-icon { font-size: 24px; }
-        
+        .menu-btn:active { transform: scale(0.93); background: rgba(255,255,255,0.25); }
+        .menu-icon { font-size: 28px; }
+
         /* Battle Modal */
         .modal {
-            display: none;
-            position: fixed;
+            display: none; position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.92);
-            backdrop-filter: blur(10px);
-            z-index: 3000;
-            padding: 20px;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(15px);
+            z-index: 3000; padding: 20px;
         }
         .modal.active { display: flex; flex-direction: column; align-items: center; }
         .modal-content {
-            background: linear-gradient(135deg, rgba(26,26,46,0.95), rgba(22,33,62,0.95));
-            border-radius: 25px;
-            padding: 30px;
-            max-width: 450px;
-            width: 100%;
-            border: 2px solid rgba(255,255,255,0.2);
+            background: linear-gradient(135deg, rgba(26,26,46,0.98), rgba(22,33,62,0.98));
+            border-radius: 30px; padding: 35px;
+            max-width: 500px; width: 100%;
+            border: 3px solid rgba(255,255,255,0.2);
         }
         .modal-title {
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 25px;
-            text-align: center;
+            font-size: 32px; font-weight: bold;
+            margin-bottom: 30px; text-align: center;
             background: linear-gradient(135deg, #f39c12, #e74c3c);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
         .close-modal {
-            position: absolute;
-            top: 20px; right: 20px;
-            font-size: 36px;
-            cursor: pointer;
-            color: #aaa;
+            position: absolute; top: 25px; right: 25px;
+            font-size: 40px; cursor: pointer; color: #aaa;
         }
         .monster-card {
             background: rgba(255,255,255,0.15);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            transition: all 0.3s;
+            border-radius: 20px; padding: 20px;
+            margin-bottom: 15px;
+            display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; transition: all 0.3s;
+            border: 2px solid transparent;
         }
         .monster-card:hover {
-            transform: translateX(10px);
+            transform: translateX(12px);
             border-color: #e74c3c;
-            background: rgba(231,76,60,0.25);
+            background: rgba(231,76,60,0.3);
         }
-        .monster-info { display: flex; align-items: center; gap: 15px; }
-        .monster-icon { font-size: 48px; }
-        .monster-details h3 { font-size: 16px; margin-bottom: 5px; }
-        .monster-stats { font-size: 11px; color: #ccc; }
+        .monster-info { display: flex; align-items: center; gap: 18px; }
+        .monster-icon { font-size: 56px; }
+        .monster-details h3 { font-size: 18px; margin-bottom: 6px; }
+        .monster-stats { font-size: 12px; color: #ccc; }
         .fight-btn {
-            padding: 10px 20px;
+            padding: 12px 28px;
             background: linear-gradient(135deg, #e74c3c, #c0392b);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
+            border: none; border-radius: 12px;
+            color: white; font-weight: bold; cursor: pointer;
+            font-size: 14px;
         }
         .battle-log {
-            background: rgba(0,0,0,0.5);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-            max-height: 200px;
-            overflow-y: auto;
-            display: none;
+            background: rgba(0,0,0,0.6);
+            border-radius: 15px; padding: 18px;
+            margin-top: 20px; max-height: 250px;
+            overflow-y: auto; display: none;
         }
         .battle-entry {
-            padding: 5px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            font-size: 13px;
+            padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 14px;
         }
         .battle-entry.player { color: #2ecc71; }
         .battle-entry.monster { color: #e74c3c; }
-        .battle-entry.crit { color: #f39c12; font-weight: bold; }
-        
+        .battle-entry.crit { color: #f39c12; font-weight: bold; font-size: 15px; }
+
         /* Notification */
         .notification {
-            position: fixed;
-            top: 20px; left: 50%;
+            position: fixed; top: 25px; left: 50%;
             transform: translateX(-50%);
-            background: rgba(46,204,113,0.95);
-            color: white;
-            padding: 15px 30px;
-            border-radius: 12px;
-            font-weight: bold;
-            z-index: 10000;
-            animation: slideDown 0.3s ease-out;
+            background: rgba(46,204,113,0.98);
+            color: white; padding: 16px 35px;
+            border-radius: 15px; font-weight: bold;
+            z-index: 10000; animation: slideDown 0.3s ease-out;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
         }
-        .notification.error { background: rgba(231,76,60,0.95); }
+        .notification.error { background: rgba(231,76,60,0.98); }
         @keyframes slideDown {
-            from { top: -50px; opacity: 0; }
-            to { top: 20px; opacity: 1; }
+            from { top: -60px; opacity: 0; }
+            to { top: 25px; opacity: 1; }
         }
-        
+
         @media (max-width: 480px) {
             .class-selection { grid-template-columns: 1fr; }
-            .character-sprite { width: 250px; height: 380px; }
-            .side-btn { width: 75px; height: 75px; }
+            .character-container { width: 280px; height: 400px; }
+            .character-emoji { font-size: 140px; }
+            .side-btn { width: 80px; height: 80px; }
+            .btn-icon { font-size: 36px; }
         }
     </style>
 </head>
@@ -467,9 +489,23 @@
         </div>
 
         <div class="character-scene">
-            <div class="character-glow"></div>
-            <img src="" alt="Character" class="character-sprite" id="characterSprite" style="display: none;">
-            <div style="font-size: 150px; z-index: 1; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6));" id="characterEmoji">⚔️</div>
+            <div class="character-shadow"></div>
+            <div class="character-aura"></div>
+            
+            <div class="character-container">
+                <div class="character-emoji" id="characterEmoji">⚔️</div>
+            </div>
+
+            <!-- Floating particles for atmosphere -->
+            <div class="particles">
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+            </div>
 
             <div class="side-buttons">
                 <div class="side-btn battle" onclick="openBattle()">
@@ -552,15 +588,10 @@
             await checkCharacter();
         };
 
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
+        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
         async function checkCharacter() {
-            // Проверяем есть ли персонаж
             tg.sendData(JSON.stringify({ action: 'get_profile' }));
-            
-            // Ждём ответ 2 секунды, если нет - показываем создание
             setTimeout(() => {
                 if (!gameState.characterCreated) {
                     showCharacterCreation();
@@ -577,7 +608,6 @@
             updateUI();
         }
 
-        // Выбор класса
         document.querySelectorAll('.class-card').forEach(card => {
             card.addEventListener('click', function() {
                 document.querySelectorAll('.class-card').forEach(c => c.classList.remove('selected'));
@@ -588,13 +618,11 @@
             });
         });
 
-        // Ввод имени
         document.getElementById('characterName').addEventListener('input', function() {
             document.getElementById('createCharacterBtn').disabled = 
                 !this.value.trim() || !gameState.selectedClass;
         });
 
-        // Создание персонажа
         document.getElementById('createCharacterBtn').addEventListener('click', function() {
             const name = document.getElementById('characterName').value.trim();
             if (!name || !gameState.selectedClass) return;
@@ -683,7 +711,6 @@
             setTimeout(() => notif.remove(), 3000);
         }
 
-        // Обработка ответов от бота
         tg.onEvent('message', (data) => {
             try {
                 const response = JSON.parse(data);
