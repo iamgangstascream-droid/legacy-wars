@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Legacy Wars</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #0a0a0a;
@@ -16,8 +16,7 @@
         }
         .game-background {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background-image: url('images/background.jpg');
             background-size: cover;
             background-position: center;
@@ -30,8 +29,7 @@
         }
         .bg-overlay {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(180deg, rgba(26,26,46,0.5) 0%, rgba(15,52,96,0.4) 100%);
             z-index: -1;
         }
@@ -64,6 +62,86 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         .loading-text { margin-top: 20px; font-size: 18px; color: #aaa; }
+        
+        /* Character Creation */
+        .character-creation {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(15px);
+            z-index: 5000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .character-creation.active { display: flex; flex-direction: column; align-items: center; }
+        .creation-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 30px 0 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #f39c12, #e74c3c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .creation-subtitle { font-size: 16px; color: #ccc; margin-bottom: 30px; text-align: center; }
+        .name-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            font-size: 16px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .name-input:focus { outline: none; border-color: #f39c12; }
+        .class-selection {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 20px;
+        }
+        .class-card {
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .class-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.25); }
+        .class-card.selected {
+            border-color: #f39c12;
+            background: rgba(243, 156, 18, 0.35);
+            box-shadow: 0 0 25px rgba(243, 156, 18, 0.6);
+            transform: scale(1.05);
+        }
+        .class-icon { font-size: 48px; margin-bottom: 10px; }
+        .class-name { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
+        .class-stats { font-size: 11px; color: #ccc; }
+        .create-btn {
+            width: 100%;
+            max-width: 300px;
+            padding: 18px;
+            background: linear-gradient(135deg, #f39c12, #e74c3c);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .create-btn:active { transform: scale(0.95); }
+        .create-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* Game Screen */
         .game-screen {
             display: none;
             position: fixed;
@@ -109,6 +187,8 @@
             padding: 5px 10px;
             border-radius: 10px;
         }
+        
+        /* Character Display */
         .character-scene {
             flex: 1;
             position: relative;
@@ -117,21 +197,22 @@
             justify-content: center;
             padding-bottom: 50px;
         }
-        .character-shadow {
-            position: absolute;
-            bottom: 80px;
-            width: 200px; height: 60px;
-            background: radial-gradient(ellipse, rgba(0,0,0,0.6) 0%, transparent 70%);
-            border-radius: 50%;
-            filter: blur(10px);
-            animation: shadowPulse 3s ease-in-out infinite;
-            z-index: 0;
+        .character-sprite {
+            width: 300px;
+            height: 450px;
+            object-fit: contain;
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6));
+            animation: characterFloat 4s ease-in-out infinite;
+            background: transparent;
         }
-        @keyframes shadowPulse {
-            0%, 100% { transform: scale(1); opacity: 0.6; }
-            50% { transform: scale(1.1); opacity: 0.8; }
+        @keyframes characterFloat {
+            0%, 100% { transform: translateY(0) rotateY(0deg); }
+            25% { transform: translateY(-15px) rotateY(2deg); }
+            75% { transform: translateY(-10px) rotateY(-2deg); }
         }
-        .character-aura {
+        .character-glow {
             position: absolute;
             bottom: 100px;
             width: 280px; height: 280px;
@@ -145,20 +226,8 @@
             0%, 100% { transform: scale(1); opacity: 0.5; }
             50% { transform: scale(1.2); opacity: 0.8; }
         }
-        .character-sprite {
-            width: 350px; height: 500px;
-            object-fit: contain;
-            position: relative;
-            z-index: 1;
-            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6));
-            animation: characterFloatMain 4s ease-in-out infinite;
-            background: transparent;
-        }
-        @keyframes characterFloatMain {
-            0%, 100% { transform: translateY(0) rotateY(0deg); }
-            25% { transform: translateY(-15px) rotateY(2deg); }
-            75% { transform: translateY(-10px) rotateY(-2deg); }
-        }
+        
+        /* Side Buttons */
         .side-buttons {
             position: absolute;
             width: 100%; height: 100%;
@@ -199,6 +268,8 @@
         }
         .btn-icon { font-size: 36px; margin-bottom: 5px; }
         .btn-label { font-size: 11px; font-weight: bold; }
+        
+        /* Bottom Menu */
         .bottom-menu {
             display: flex;
             justify-content: space-around;
@@ -224,6 +295,7 @@
         }
         .menu-btn:active { transform: scale(0.95); }
         .menu-icon { font-size: 24px; }
+        
         /* Battle Modal */
         .modal {
             display: none;
@@ -288,7 +360,6 @@
             font-weight: bold;
             cursor: pointer;
         }
-        /* Battle Log */
         .battle-log {
             background: rgba(0,0,0,0.5);
             border-radius: 10px;
@@ -296,6 +367,7 @@
             margin-top: 15px;
             max-height: 200px;
             overflow-y: auto;
+            display: none;
         }
         .battle-entry {
             padding: 5px 0;
@@ -305,6 +377,8 @@
         .battle-entry.player { color: #2ecc71; }
         .battle-entry.monster { color: #e74c3c; }
         .battle-entry.crit { color: #f39c12; font-weight: bold; }
+        
+        /* Notification */
         .notification {
             position: fixed;
             top: 20px; left: 50%;
@@ -322,8 +396,10 @@
             from { top: -50px; opacity: 0; }
             to { top: 20px; opacity: 1; }
         }
+        
         @media (max-width: 480px) {
-            .character-sprite { width: 280px; height: 400px; }
+            .class-selection { grid-template-columns: 1fr; }
+            .character-sprite { width: 250px; height: 380px; }
             .side-btn { width: 75px; height: 75px; }
         }
     </style>
@@ -339,12 +415,45 @@
         <div class="loading-text">Загрузка Legacy Wars...</div>
     </div>
 
+    <!-- Character Creation -->
+    <div class="character-creation" id="characterCreation">
+        <h1 class="creation-title">🎮 ВЫБЕРИ ГЕРОЯ</h1>
+        <p class="creation-subtitle">Введи имя и выбери класс</p>
+        
+        <input type="text" class="name-input" id="characterName" placeholder="Имя героя..." maxlength="20">
+        
+        <div class="class-selection">
+            <div class="class-card" data-class="warrior">
+                <div class="class-icon">⚔️</div>
+                <div class="class-name">Воин</div>
+                <div class="class-stats">HP: 150 | ATK: 15 | DEF: 10</div>
+            </div>
+            <div class="class-card" data-class="mage">
+                <div class="class-icon">🔮</div>
+                <div class="class-name">Маг</div>
+                <div class="class-stats">HP: 80 | ATK: 25 | DEF: 3</div>
+            </div>
+            <div class="class-card" data-class="rogue">
+                <div class="class-icon">🗡️</div>
+                <div class="class-name">Разбойник</div>
+                <div class="class-stats">HP: 100 | ATK: 20 | DEF: 5</div>
+            </div>
+            <div class="class-card" data-class="paladin">
+                <div class="class-icon">🛡️</div>
+                <div class="class-name">Паладин</div>
+                <div class="class-stats">HP: 130 | ATK: 12 | DEF: 15</div>
+            </div>
+        </div>
+        
+        <button class="create-btn" id="createCharacterBtn" disabled>⚔️ НАЧАТЬ ИГРУ</button>
+    </div>
+
     <!-- Game Screen -->
     <div class="game-screen" id="gameScreen">
         <div class="top-bar">
             <div class="player-info">
                 <div class="player-avatar" id="playerAvatar">
-                    <img src="" alt="Avatar" id="playerAvatarImg">
+                    <span id="playerAvatarText">⚔️</span>
                 </div>
                 <div class="player-details">
                     <div class="player-name" id="playerName">Игрок</div>
@@ -358,9 +467,9 @@
         </div>
 
         <div class="character-scene">
-            <div class="character-shadow"></div>
-            <div class="character-aura"></div>
-            <img src="" alt="Character" class="character-sprite" id="characterSprite">
+            <div class="character-glow"></div>
+            <img src="" alt="Character" class="character-sprite" id="characterSprite" style="display: none;">
+            <div style="font-size: 150px; z-index: 1; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6));" id="characterEmoji">⚔️</div>
 
             <div class="side-buttons">
                 <div class="side-btn battle" onclick="openBattle()">
@@ -401,7 +510,7 @@
         <div class="modal-content">
             <h2 class="modal-title">⚔️ ВЫБЕРИ ПРОТИВНИКА</h2>
             <div id="monstersList"></div>
-            <div class="battle-log" id="battleLog" style="display: none;"></div>
+            <div class="battle-log" id="battleLog"></div>
         </div>
     </div>
 
@@ -410,19 +519,19 @@
         tg.expand();
         tg.ready();
 
-        const CHARACTER_IMAGES = {
-            'rogue': 'images/rogue.png',
-            'warrior': 'images/warrior.png',
-            'mage': 'images/mage.png',
-            'paladin': 'images/paladin.png'
+        const CHARACTER_DATA = {
+            'warrior': { emoji: '⚔️', name: 'Воин' },
+            'mage': { emoji: '🔮', name: 'Маг' },
+            'rogue': { emoji: '🗡️', name: 'Разбойник' },
+            'paladin': { emoji: '🛡️', name: 'Паладин' }
         };
 
         const MONSTERS = [
-            { id: 0, name: '🐀 Крыса', level: 1, hp: 30, atk: 5, exp: 10, gold: 5 },
-            { id: 1, name: '🐺 Волк', level: 3, hp: 60, atk: 12, exp: 25, gold: 15 },
-            { id: 2, name: '🐻 Медведь', level: 5, hp: 120, atk: 20, exp: 50, gold: 40 },
-            { id: 3, name: '👹 Орк', level: 10, hp: 200, atk: 35, exp: 120, gold: 100 },
-            { id: 4, name: '🐉 Дракон', level: 20, hp: 500, atk: 60, exp: 500, gold: 1000 }
+            { id: 0, name: 'Крыса', emoji: '🐀', level: 1, hp: 30, atk: 5, exp: 10, gold: 5 },
+            { id: 1, name: 'Волк', emoji: '🐺', level: 3, hp: 60, atk: 12, exp: 25, gold: 15 },
+            { id: 2, name: 'Медведь', emoji: '🐻', level: 5, hp: 120, atk: 20, exp: 50, gold: 40 },
+            { id: 3, name: 'Орк', emoji: '👹', level: 10, hp: 200, atk: 35, exp: 120, gold: 100 },
+            { id: 4, name: 'Дракон', emoji: '🐉', level: 20, hp: 500, atk: 60, exp: 500, gold: 1000 }
         ];
 
         let gameState = {
@@ -440,17 +549,73 @@
         window.onload = async function() {
             await sleep(1500);
             document.getElementById('loading').classList.add('hidden');
-            document.getElementById('gameScreen').classList.add('active');
-            loadProfile();
+            await checkCharacter();
         };
 
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
-        async function loadProfile() {
+        async function checkCharacter() {
+            // Проверяем есть ли персонаж
             tg.sendData(JSON.stringify({ action: 'get_profile' }));
+            
+            // Ждём ответ 2 секунды, если нет - показываем создание
+            setTimeout(() => {
+                if (!gameState.characterCreated) {
+                    showCharacterCreation();
+                }
+            }, 2000);
         }
+
+        function showCharacterCreation() {
+            document.getElementById('characterCreation').classList.add('active');
+        }
+
+        function showGameScreen() {
+            document.getElementById('gameScreen').classList.add('active');
+            updateUI();
+        }
+
+        // Выбор класса
+        document.querySelectorAll('.class-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.class-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                gameState.selectedClass = this.dataset.class;
+                document.getElementById('createCharacterBtn').disabled = 
+                    !document.getElementById('characterName').value.trim();
+            });
+        });
+
+        // Ввод имени
+        document.getElementById('characterName').addEventListener('input', function() {
+            document.getElementById('createCharacterBtn').disabled = 
+                !this.value.trim() || !gameState.selectedClass;
+        });
+
+        // Создание персонажа
+        document.getElementById('createCharacterBtn').addEventListener('click', function() {
+            const name = document.getElementById('characterName').value.trim();
+            if (!name || !gameState.selectedClass) return;
+
+            tg.sendData(JSON.stringify({
+                action: 'create_character',
+                name: name,
+                class: gameState.selectedClass
+            }));
+
+            gameState.name = name;
+            gameState.class = gameState.selectedClass;
+            gameState.characterCreated = true;
+            
+            showNotification('✅ Персонаж создан!');
+            
+            setTimeout(() => {
+                document.getElementById('characterCreation').classList.remove('active');
+                showGameScreen();
+            }, 1000);
+        });
 
         function updateUI() {
             document.getElementById('playerName').textContent = gameState.name;
@@ -458,9 +623,9 @@
             document.getElementById('playerHp').textContent = `${gameState.hp}/${gameState.hpMax}`;
             document.getElementById('playerGold').textContent = gameState.gold;
             
-            const characterImg = CHARACTER_IMAGES[gameState.class] || CHARACTER_IMAGES['warrior'];
-            document.getElementById('characterSprite').src = characterImg;
-            document.getElementById('playerAvatarImg').src = characterImg;
+            const charData = CHARACTER_DATA[gameState.class] || CHARACTER_DATA['warrior'];
+            document.getElementById('playerAvatarText').textContent = charData.emoji;
+            document.getElementById('characterEmoji').textContent = charData.emoji;
         }
 
         function openBattle() {
@@ -476,7 +641,7 @@
                 card.className = 'monster-card';
                 card.innerHTML = `
                     <div class="monster-info">
-                        <div class="monster-icon">${monster.name.split(' ')[0]}</div>
+                        <div class="monster-icon">${monster.emoji}</div>
                         <div class="monster-details">
                             <h3>${monster.name}</h3>
                             <div class="monster-stats">Ур. ${monster.level} | HP: ${monster.hp} | ATK: ${monster.atk}</div>
@@ -518,6 +683,7 @@
             setTimeout(() => notif.remove(), 3000);
         }
 
+        // Обработка ответов от бота
         tg.onEvent('message', (data) => {
             try {
                 const response = JSON.parse(data);
@@ -531,6 +697,7 @@
                     gameState.hpMax = p.hp_max;
                     gameState.gold = p.gold;
                     gameState.class = p.class;
+                    gameState.characterCreated = true;
                     updateUI();
                 }
 
@@ -552,6 +719,7 @@
                         }
                         
                         battleLog.appendChild(div);
+                        battleLog.scrollTop = battleLog.scrollHeight;
                     });
 
                     if (response.win) {
@@ -562,10 +730,12 @@
                         if (response.drop) {
                             battleLog.innerHTML += `<div class="battle-entry crit">🎁 Выпало: ${response.drop}</div>`;
                         }
-                        gameState.gold = response.player.gold;
-                        gameState.level = response.player.level;
-                        gameState.hp = response.player.hp;
-                        updateUI();
+                        if (response.player) {
+                            gameState.gold = response.player.gold;
+                            gameState.level = response.player.level;
+                            gameState.hp = response.player.hp;
+                            updateUI();
+                        }
                     } else {
                         battleLog.innerHTML += '<div class="battle-entry monster">💀 ПОРАЖЕНИЕ...</div>';
                     }
