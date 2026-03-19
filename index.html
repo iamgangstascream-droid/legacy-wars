@@ -34,27 +34,43 @@
             padding: 15px;
             margin-bottom: 20px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 15px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .player-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
         .avatar {
-            width: 45px;
-            height: 45px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             background: linear-gradient(135deg, #f39c12, #e74c3c);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            border: 2px solid #fff;
+            border: 3px solid #fff;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .player-info {
+            flex: 1;
+        }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 3px;
+        }
+
+        .player-level {
+            font-size: 12px;
+            color: #f39c12;
         }
 
         .stats {
@@ -68,6 +84,9 @@
             gap: 5px;
             font-size: 14px;
             font-weight: 600;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 10px;
+            border-radius: 10px;
         }
 
         /* Main Menu */
@@ -122,6 +141,40 @@
             background: linear-gradient(135deg, #f39c12, #e74c3c);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        /* Character Display */
+        .character-display {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+        }
+
+        .character-image {
+            width: 200px;
+            height: 280px;
+            object-fit: contain;
+            margin: 0 auto;
+            filter: drop-shadow(0 10px 30px rgba(243, 156, 18, 0.3));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .character-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .character-class {
+            color: #f39c12;
+            margin-top: 5px;
         }
 
         /* Battle */
@@ -224,15 +277,12 @@
             flex: 1;
         }
 
-        .fighter-icon {
-            font-size: 80px;
-            margin-bottom: 10px;
+        .fighter-image {
+            width: 120px;
+            height: 160px;
+            object-fit: contain;
+            margin: 0 auto;
             animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
         }
 
         .hp-bar {
@@ -303,12 +353,12 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
+            <div class="avatar" id="playerAvatar">
+                <img src="images/warrior.png" alt="Avatar" id="playerAvatarImg">
+            </div>
             <div class="player-info">
-                <div class="avatar" id="playerAvatar">⚔️</div>
-                <div>
-                    <div style="font-weight: bold;" id="playerName">Загрузка...</div>
-                    <div style="font-size: 12px; color: #f39c12;">Ур. <span id="playerLevel">1</span></div>
-                </div>
+                <div class="player-name" id="playerName">Загрузка...</div>
+                <div class="player-level">Ур. <span id="playerLevel">1</span></div>
             </div>
             <div class="stats">
                 <div class="stat">
@@ -342,6 +392,22 @@
             </div>
         </div>
 
+        <!-- Profile Section -->
+        <div class="section" id="profileSection">
+            <h2 class="section-title">📊 ТВОЙ ГЕРОЙ</h2>
+            
+            <div class="character-display">
+                <img src="images/warrior.png" alt="Character" class="character-image" id="profileCharacterImg">
+                <div class="character-name" id="profileCharacterName">Игрок</div>
+                <div class="character-class" id="profileCharacterClass">Воин</div>
+            </div>
+
+            <div id="profileStats" style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+                Загрузка...
+            </div>
+            <button class="back-btn" onclick="showMainMenu()">↩️ Назад в меню</button>
+        </div>
+
         <!-- Battle Section -->
         <div class="section" id="battleSection">
             <h2 class="section-title">⚔️ ВЫБЕРИ ПРОТИВНИКА</h2>
@@ -354,16 +420,16 @@
             <h2 class="section-title">⚔️ БИТВА</h2>
             <div class="fighters">
                 <div class="fighter">
-                    <div class="fighter-icon" id="playerFighterIcon">⚔️</div>
-                    <div style="font-weight: bold;">Ты</div>
+                    <img src="images/warrior.png" alt="Player" class="fighter-image" id="playerFighterImg">
+                    <div style="font-weight: bold; margin-top: 10px;">Ты</div>
                     <div class="hp-bar">
                         <div class="hp-fill" id="playerHpFill" style="width: 100%"></div>
                     </div>
                 </div>
                 <div class="vs">VS</div>
                 <div class="fighter">
-                    <div class="fighter-icon" id="enemyFighterIcon">🐀</div>
-                    <div style="font-weight: bold;" id="enemyName">Враг</div>
+                    <img src="images/warrior.png" alt="Enemy" class="fighter-image" id="enemyFighterImg">
+                    <div style="font-weight: bold; margin-top: 10px;" id="enemyName">Враг</div>
                     <div class="hp-bar">
                         <div class="hp-fill" id="enemyHpFill" style="width: 100%"></div>
                     </div>
@@ -377,15 +443,6 @@
         <div class="section" id="inventorySection">
             <h2 class="section-title">🎒 ИНВЕНТАРЬ</h2>
             <div id="inventoryList" style="text-align: center; padding: 20px;">Загрузка...</div>
-            <button class="back-btn" onclick="showMainMenu()">↩️ Назад в меню</button>
-        </div>
-
-        <!-- Profile Section -->
-        <div class="section" id="profileSection">
-            <h2 class="section-title">📊 ПРОФИЛЬ</h2>
-            <div id="profileInfo" style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
-                Загрузка...
-            </div>
             <button class="back-btn" onclick="showMainMenu()">↩️ Назад в меню</button>
         </div>
 
@@ -421,6 +478,20 @@
             { id: 3, name: 'Орк', icon: '👹', level: 10, hp: 200, atk: 35, exp: 120, gold: 100 },
             { id: 4, name: 'Дракон', icon: '🐉', level: 20, hp: 500, atk: 60, exp: 500, gold: 1000 }
         ];
+
+        const classImages = {
+            'warrior': 'images/warrior.png',
+            'mage': 'images/mage.png',
+            'rogue': 'images/rogue.png',
+            'paladin': 'images/paladin.png'
+        };
+
+        const classNames = {
+            'warrior': 'Воин',
+            'mage': 'Маг',
+            'rogue': 'Разбойник',
+            'paladin': 'Паладин'
+        };
 
         window.onload = async function() {
             document.getElementById('loading').style.display = 'block';
@@ -497,7 +568,6 @@
             document.getElementById('battleArena').classList.add('active');
             document.getElementById('battleLog').innerHTML = '';
 
-            document.getElementById('enemyFighterIcon').textContent = enemy.icon;
             document.getElementById('enemyName').textContent = enemy.name;
             
             addLogEntry(`⚔️ Бой начался! Ты сражаешься против ${enemy.name}!`, 'normal');
@@ -588,11 +658,19 @@
         function showProfile() {
             const p = gameState.player;
             if (!p) {
-                document.getElementById('profileInfo').innerHTML = 'Загрузка...';
+                document.getElementById('profileStats').innerHTML = 'Загрузка...';
                 return;
             }
             
-            document.getElementById('profileInfo').innerHTML = `
+            // Update character image based on class
+            const classImg = classImages[p.class] || 'images/warrior.png';
+            const className = classNames[p.class] || 'Воин';
+            
+            document.getElementById('profileCharacterImg').src = classImg;
+            document.getElementById('profileCharacterName').textContent = p.name;
+            document.getElementById('profileCharacterClass').textContent = className;
+            
+            document.getElementById('profileStats').innerHTML = `
                 <div style="margin-bottom: 10px;"><strong>${p.name}</strong></div>
                 <div>Уровень: ${p.level}</div>
                 <div>HP: ${p.hp}/${p.hp_max}</div>
@@ -614,6 +692,10 @@
             document.getElementById('playerLevel').textContent = p.level;
             document.getElementById('playerHp').textContent = `${p.hp}/${p.hp_max}`;
             document.getElementById('playerGold').textContent = p.gold;
+            
+            // Update avatar image
+            const classImg = classImages[p.class] || 'images/warrior.png';
+            document.getElementById('playerAvatarImg').src = classImg;
         }
 
         function sleep(ms) {
