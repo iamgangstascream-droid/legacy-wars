@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Legacy Wars - Battle</title>
+    <title>Legacy Wars</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -11,7 +11,6 @@
             padding: 0;
             box-sizing: border-box;
             user-select: none;
-            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -19,7 +18,6 @@
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             color: #ffffff;
             min-height: 100vh;
-            overflow-x: hidden;
             padding: 15px;
         }
 
@@ -28,7 +26,7 @@
             margin: 0 auto;
         }
 
-        /* Header Stats */
+        /* Header */
         .header {
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(10px);
@@ -72,25 +70,51 @@
             font-weight: 600;
         }
 
-        /* Battle Screen */
-        .battle-screen {
+        /* Main Menu */
+        .main-menu {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .menu-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+            border-color: #f39c12;
+            background: rgba(243, 156, 18, 0.2);
+        }
+
+        .menu-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .menu-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* Sections */
+        .section {
             display: none;
         }
 
-        .battle-screen.active {
+        .section.active {
             display: block;
         }
 
-        /* Enemy Selection */
-        .enemy-selection {
-            display: block;
-        }
-
-        .enemy-selection.hidden {
-            display: none;
-        }
-
-        .title {
+        .section-title {
             font-size: 24px;
             font-weight: bold;
             text-align: center;
@@ -100,6 +124,7 @@
             -webkit-text-fill-color: transparent;
         }
 
+        /* Battle */
         .enemy-list {
             display: flex;
             flex-direction: column;
@@ -152,7 +177,25 @@
             color: white;
             font-weight: bold;
             cursor: pointer;
-            font-size: 14px;
+        }
+
+        /* Back Button */
+        .back-btn {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         /* Battle Arena */
@@ -192,11 +235,6 @@
             50% { transform: translateY(-10px); }
         }
 
-        .fighter-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
         .hp-bar {
             width: 100%;
             height: 20px;
@@ -212,11 +250,6 @@
             transition: width 0.5s ease;
         }
 
-        .hp-text {
-            font-size: 12px;
-            margin-top: 3px;
-        }
-
         .vs {
             font-size: 24px;
             font-weight: bold;
@@ -224,7 +257,6 @@
             margin: 0 20px;
         }
 
-        /* Battle Log */
         .battle-log {
             background: rgba(0, 0, 0, 0.6);
             border-radius: 15px;
@@ -238,113 +270,18 @@
             padding: 8px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-size: 14px;
-            animation: slideIn 0.3s ease;
         }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .log-entry.player {
-            color: #2ecc71;
-        }
-
-        .log-entry.enemy {
-            color: #e74c3c;
-        }
-
-        .log-entry.crit {
-            color: #f39c12;
-            font-weight: bold;
-        }
-
-        .log-entry.loot {
-            color: #9b59b6;
-        }
-
-        .log-entry.win {
-            color: #27ae60;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .log-entry.lose {
-            color: #c0392b;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .action-btn {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .action-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .back-btn {
-            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
-        }
-
-        /* Damage Animation */
-        .damage-popup {
-            position: fixed;
-            font-size: 32px;
-            font-weight: bold;
-            color: #e74c3c;
-            pointer-events: none;
-            animation: damageFloat 1s ease-out forwards;
-            z-index: 1000;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-        }
-
-        @keyframes damageFloat {
-            0% {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(-50px) scale(1.5);
-            }
-        }
-
-        .damage-popup.crit {
-            color: #f39c12;
-            font-size: 40px;
-        }
+        .log-entry.player { color: #2ecc71; }
+        .log-entry.enemy { color: #e74c3c; }
+        .log-entry.crit { color: #f39c12; font-weight: bold; }
+        .log-entry.loot { color: #9b59b6; }
+        .log-entry.win { color: #27ae60; font-weight: bold; }
 
         /* Loading */
         .loading {
-            display: none;
             text-align: center;
-            padding: 20px;
-        }
-
-        .loading.active {
-            display: block;
+            padding: 40px;
         }
 
         .spinner {
@@ -360,29 +297,6 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-
-        /* Navigation */
-        .nav-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .nav-btn {
-            flex: 1;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            color: white;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-
-        .nav-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
     </style>
 </head>
 <body>
@@ -392,7 +306,7 @@
             <div class="player-info">
                 <div class="avatar" id="playerAvatar">⚔️</div>
                 <div>
-                    <div style="font-weight: bold;" id="playerName">Игрок</div>
+                    <div style="font-weight: bold;" id="playerName">Загрузка...</div>
                     <div style="font-size: 12px; color: #f39c12;">Ур. <span id="playerLevel">1</span></div>
                 </div>
             </div>
@@ -403,58 +317,89 @@
                 </div>
                 <div class="stat">
                     <span>💰</span>
-                    <span id="playerGold">100</span>
+                    <span id="playerGold">0</span>
                 </div>
             </div>
         </div>
 
-        <!-- Enemy Selection -->
-        <div class="enemy-selection" id="enemySelection">
-            <h1 class="title">⚔️ ВЫБЕРИ ПРОТИВНИКА</h1>
-            <div class="enemy-list" id="enemyList">
-                <!-- Enemies will be loaded here -->
+        <!-- Main Menu -->
+        <div class="main-menu" id="mainMenu">
+            <div class="menu-card" onclick="showSection('battle')">
+                <div class="menu-icon">⚔️</div>
+                <div class="menu-title">БИТВА</div>
             </div>
+            <div class="menu-card" onclick="showSection('inventory')">
+                <div class="menu-icon">🎒</div>
+                <div class="menu-title">ИНВЕНТАРЬ</div>
+            </div>
+            <div class="menu-card" onclick="showSection('profile')">
+                <div class="menu-icon">📊</div>
+                <div class="menu-title">ПРОФИЛЬ</div>
+            </div>
+            <div class="menu-card" onclick="showSection('shop')">
+                <div class="menu-icon">🏪</div>
+                <div class="menu-title">МАГАЗИН</div>
+            </div>
+        </div>
+
+        <!-- Battle Section -->
+        <div class="section" id="battleSection">
+            <h2 class="section-title">⚔️ ВЫБЕРИ ПРОТИВНИКА</h2>
+            <div class="enemy-list" id="enemyList"></div>
+            <button class="back-btn" onclick="showMainMenu()">↩️ Назад в меню</button>
         </div>
 
         <!-- Battle Arena -->
         <div class="battle-arena" id="battleArena">
-            <h1 class="title">⚔️ БИТВА</h1>
-            
+            <h2 class="section-title">⚔️ БИТВА</h2>
             <div class="fighters">
                 <div class="fighter">
                     <div class="fighter-icon" id="playerFighterIcon">⚔️</div>
-                    <div class="fighter-name" id="playerFighterName">Игрок</div>
+                    <div style="font-weight: bold;">Ты</div>
                     <div class="hp-bar">
                         <div class="hp-fill" id="playerHpFill" style="width: 100%"></div>
                     </div>
-                    <div class="hp-text" id="playerHpText">100/100</div>
                 </div>
-                
                 <div class="vs">VS</div>
-                
                 <div class="fighter">
                     <div class="fighter-icon" id="enemyFighterIcon">🐀</div>
-                    <div class="fighter-name" id="enemyFighterName">Крыса</div>
+                    <div style="font-weight: bold;" id="enemyName">Враг</div>
                     <div class="hp-bar">
                         <div class="hp-fill" id="enemyHpFill" style="width: 100%"></div>
                     </div>
-                    <div class="hp-text" id="enemyHpText">30/30</div>
                 </div>
             </div>
+            <div class="battle-log" id="battleLog"></div>
+            <button class="back-btn" onclick="backToEnemies()">↩️ Назад к выбору</button>
+        </div>
 
-            <div class="battle-log" id="battleLog">
-                <!-- Battle log entries -->
-            </div>
+        <!-- Inventory Section -->
+        <div class="section" id="inventorySection">
+            <h2 class="section-title">🎒 ИНВЕНТАРЬ</h2>
+            <div id="inventoryList" style="text-align: center; padding: 20px;">Загрузка...</div>
+            <button class="back-btn" onclick="showMainMenu()">↩️ Назад в меню</button>
+        </div>
 
-            <div class="action-buttons">
-                <button class="action-btn back-btn" onclick="backToSelection()" id="backBtn">↩️ Назад</button>
+        <!-- Profile Section -->
+        <div class="section" id="profileSection">
+            <h2 class="section-title">📊 ПРОФИЛЬ</h2>
+            <div id="profileInfo" style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+                Загрузка...
             </div>
+            <button class="back-btn" onclick="showMainMenu()">↩️ Назад в меню</button>
+        </div>
+
+        <!-- Shop Section -->
+        <div class="section" id="shopSection">
+            <h2 class="section-title">🏪 МАГАЗИН</h2>
+            <div id="shopList" style="text-align: center; padding: 20px;">Загрузка...</div>
+            <button class="back-btn" onclick="showMainMenu()">↩️ Назад в меню</button>
         </div>
 
         <!-- Loading -->
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <div>Загрузка...</div>
+            <div>Загрузка игры...</div>
         </div>
     </div>
 
@@ -463,70 +408,63 @@
         tg.expand();
         tg.ready();
 
-        // Game State
         let gameState = {
-            player: {
-                name: 'Игрок',
-                level: 1,
-                hp: 100,
-                hpMax: 100,
-                atk: 15,
-                def: 10,
-                crit: 5,
-                gold: 100,
-                class: 'warrior'
-            },
+            player: null,
             currentEnemy: null,
             battleInProgress: false
         };
 
-        // Enemies Data
         const enemies = [
-            { id: 0, name: 'Крыса', icon: '🐀', level: 1, hp: 30, atk: 5, exp: 10, gold: 5, drop: ['potion_small'] },
-            { id: 1, name: 'Волк', icon: '🐺', level: 3, hp: 60, atk: 12, exp: 25, gold: 15, drop: ['potion_small', 'armor_cloth'] },
-            { id: 2, name: 'Медведь', icon: '🐻', level: 5, hp: 120, atk: 20, exp: 50, gold: 40, drop: ['potion_medium', 'armor_leather'] },
-            { id: 3, name: 'Змей', icon: '🐍', level: 7, hp: 80, atk: 25, exp: 60, gold: 50, drop: ['dagger_iron'] },
-            { id: 4, name: 'Гоблин', icon: '👺', level: 8, hp: 100, atk: 22, exp: 75, gold: 60, drop: ['sword_iron', 'gold_ore'] },
-            { id: 5, name: 'Зомби', icon: '🧟', level: 10, hp: 150, atk: 18, exp: 90, gold: 70, drop: ['potion_medium'] },
-            { id: 6, name: 'Орк', icon: '👹', level: 12, hp: 200, atk: 35, exp: 120, gold: 100, drop: ['armor_chain', 'sword_steel'] },
-            { id: 7, name: 'Паук-гигант', icon: '🕷️', level: 15, hp: 180, atk: 40, exp: 150, gold: 130, drop: ['dagger_shadow'] },
-            { id: 8, name: 'Молодой дракон', icon: '🐉', level: 20, hp: 500, atk: 60, exp: 500, gold: 1000, drop: ['dragon_scale', 'armor_plate'] },
-            { id: 9, name: 'Демон', icon: '👿', level: 25, hp: 800, atk: 80, exp: 1000, gold: 2000, drop: ['amulet_crit'] }
+            { id: 0, name: 'Крыса', icon: '🐀', level: 1, hp: 30, atk: 5, exp: 10, gold: 5 },
+            { id: 1, name: 'Волк', icon: '🐺', level: 3, hp: 60, atk: 12, exp: 25, gold: 15 },
+            { id: 2, name: 'Медведь', icon: '🐻', level: 5, hp: 120, atk: 20, exp: 50, gold: 40 },
+            { id: 3, name: 'Орк', icon: '👹', level: 10, hp: 200, atk: 35, exp: 120, gold: 100 },
+            { id: 4, name: 'Дракон', icon: '🐉', level: 20, hp: 500, atk: 60, exp: 500, gold: 1000 }
         ];
 
-        // Items Data
-        const items = {
-            'potion_small': { name: 'Малое зелье', icon: '🧪' },
-            'potion_medium': { name: 'Среднее зелье', icon: '🧪' },
-            'armor_cloth': { name: 'Тканевая броня', icon: '👕' },
-            'armor_leather': { name: 'Кожаная броня', icon: '🧥' },
-            'dagger_iron': { name: 'Железный кинжал', icon: '🗡️' },
-            'sword_iron': { name: 'Железный меч', icon: '⚔️' },
-            'gold_ore': { name: 'Золотая руда', icon: '⛏️' },
-            'armor_chain': { name: 'Кольчуга', icon: '⛓️' },
-            'sword_steel': { name: 'Стальной меч', icon: '🗡️' },
-            'dagger_shadow': { name: 'Теневой клинок', icon: '🌑' },
-            'dragon_scale': { name: 'Чешуя дракона', icon: '🐉' },
-            'armor_plate': { name: 'Латы', icon: '🛡️' },
-            'amulet_crit': { name: 'Амулет крита', icon: '📿' }
-        };
-
-        // Initialize
         window.onload = async function() {
+            document.getElementById('loading').style.display = 'block';
             await loadPlayerData();
-            renderEnemyList();
+            document.getElementById('loading').style.display = 'none';
+            showMainMenu();
         };
 
-        // Load Player Data from Bot
         async function loadPlayerData() {
             tg.sendData(JSON.stringify({ action: 'get_profile' }));
         }
 
-        // Render Enemy List
+        function showMainMenu() {
+            hideAllSections();
+            document.getElementById('mainMenu').style.display = 'grid';
+            document.getElementById('battleArena').classList.remove('active');
+        }
+
+        function showSection(sectionName) {
+            hideAllSections();
+            document.getElementById('mainMenu').style.display = 'none';
+            
+            if (sectionName === 'battle') {
+                document.getElementById('battleSection').classList.add('active');
+                renderEnemyList();
+            } else if (sectionName === 'inventory') {
+                document.getElementById('inventorySection').classList.add('active');
+                loadInventory();
+            } else if (sectionName === 'profile') {
+                document.getElementById('profileSection').classList.add('active');
+                showProfile();
+            } else if (sectionName === 'shop') {
+                document.getElementById('shopSection').classList.add('active');
+                loadShop();
+            }
+        }
+
+        function hideAllSections() {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        }
+
         function renderEnemyList() {
             const list = document.getElementById('enemyList');
             list.innerHTML = '';
-
             enemies.forEach(enemy => {
                 const card = document.createElement('div');
                 card.className = 'enemy-card';
@@ -544,55 +482,47 @@
             });
         }
 
-        // Start Battle
+        function backToEnemies() {
+            document.getElementById('battleArena').classList.remove('active');
+            document.getElementById('battleSection').classList.add('active');
+            gameState.battleInProgress = false;
+        }
+
         async function startBattle(enemyId) {
             const enemy = enemies[enemyId];
             gameState.currentEnemy = { ...enemy };
             gameState.battleInProgress = true;
 
-            // Update UI
-            document.getElementById('enemySelection').classList.add('hidden');
+            document.getElementById('battleSection').classList.remove('active');
             document.getElementById('battleArena').classList.add('active');
             document.getElementById('battleLog').innerHTML = '';
 
-            // Set fighter info
             document.getElementById('enemyFighterIcon').textContent = enemy.icon;
-            document.getElementById('enemyFighterName').textContent = enemy.name;
-            updateHpBars();
-
-            // Add battle start log
+            document.getElementById('enemyName').textContent = enemy.name;
+            
             addLogEntry(`⚔️ Бой начался! Ты сражаешься против ${enemy.name}!`, 'normal');
-
-            // Start battle loop
             await battleLoop();
         }
 
-        // Battle Loop
         async function battleLoop() {
             const player = gameState.player;
             const enemy = gameState.currentEnemy;
-            let round = 0;
-            let playerHp = player.hp;
             let enemyHp = enemy.hp;
+            let playerHp = player.hp;
 
-            while (playerHp > 0 && enemyHp > 0 && round < 50) {
-                round++;
+            updateHpBars(playerHp, enemyHp);
+
+            while (playerHp > 0 && enemyHp > 0) {
                 await sleep(800);
 
                 // Player attack
-                const playerDmg = calculateDamage(player.atk, 0, player.crit);
-                enemyHp -= playerDmg.damage;
+                const playerDmg = Math.max(1, player.atk + Math.floor(Math.random() * 5));
+                const isCrit = Math.random() < 0.1;
+                const finalDmg = isCrit ? Math.floor(playerDmg * 1.5) : playerDmg;
                 
-                let logText = `🗡️ Ты нанёс ${playerDmg.damage} урона`;
-                if (playerDmg.isCrit) {
-                    logText += ' 💥КРИТ!';
-                    showDamagePopup('enemy', playerDmg.damage, true);
-                } else {
-                    showDamagePopup('enemy', playerDmg.damage, false);
-                }
-                addLogEntry(logText, 'player');
-                
-                updateHpBars();
+                enemyHp -= finalDmg;
+                addLogEntry(`🗡️ Ты нанёс ${finalDmg} урона${isCrit ? ' 💥КРИТ!' : ''}`, 'player');
+                updateHpBars(playerHp, enemyHp);
                 
                 if (enemyHp <= 0) break;
 
@@ -600,97 +530,48 @@
 
                 // Enemy attack
                 const enemyDmg = Math.max(1, enemy.atk - Math.floor(player.def / 2));
-                const variance = Math.floor(enemyDmg * 0.2);
-                const finalDmg = enemyDmg + Math.floor(Math.random() * variance * 2) - variance;
-                
-                playerHp -= finalDmg;
-                addLogEntry(`💔 ${enemy.name} нанёс ${finalDmg} урона`, 'enemy');
-                showDamagePopup('player', finalDmg, false);
-                
-                updateHpBars();
+                playerHp -= enemyDmg;
+                addLogEntry(`💔 ${enemy.name} нанёс ${enemyDmg} урона`, 'enemy');
+                updateHpBars(playerHp, enemyHp);
             }
 
-            // Battle end
             await sleep(1000);
             
             if (playerHp <= 0) {
-                // Defeat
                 addLogEntry(`💀 Ты пал в бою...`, 'lose');
-                tg.sendData(JSON.stringify({ 
-                    action: 'battle_result', 
-                    win: false, 
-                    enemy_id: enemy.id 
-                }));
             } else {
-                // Victory
-                const expGain = enemy.exp;
                 const goldGain = enemy.gold;
+                const expGain = enemy.exp;
                 
                 addLogEntry(`🏆 ПОБЕДА!`, 'win');
                 addLogEntry(`⭐ Получено: ${expGain} опыта`, 'loot');
                 addLogEntry(`💰 Получено: ${goldGain} золота`, 'loot');
 
-                // Drop items
-                if (enemy.drop && Math.random() < 0.3) {
-                    const dropItem = enemy.drop[Math.floor(Math.random() * enemy.drop.length)];
-                    const item = items[dropItem];
-                    addLogEntry(`🎁 Выпало: ${item.icon} ${item.name}`, 'loot');
-                }
-
-                // Update player stats
+                // Update player
                 player.gold += goldGain;
                 player.hp = Math.max(1, playerHp);
-                document.getElementById('playerGold').textContent = player.gold;
-                document.getElementById('playerHp').textContent = `${player.hp}/${player.hpMax}`;
+                updateUI();
 
                 tg.sendData(JSON.stringify({ 
                     action: 'battle_result', 
                     win: true, 
                     enemy_id: enemy.id,
                     gold: goldGain,
-                    exp: expGain
+                    exp: expGain 
                 }));
             }
 
             gameState.battleInProgress = false;
+        }
+
+        function updateHpBars(playerHp, enemyHp) {
+            const playerMax = gameState.player.hp_max || 100;
+            const enemyMax = gameState.currentEnemy.hp;
             
-            // Show back button
-            setTimeout(() => {
-                document.getElementById('backBtn').style.display = 'block';
-            }, 2000);
+            document.getElementById('playerHpFill').style.width = `${(playerHp / playerMax) * 100}%`;
+            document.getElementById('enemyHpFill').style.width = `${(enemyHp / enemyMax) * 100}%`;
         }
 
-        // Calculate Damage
-        function calculateDamage(atk, def, critChance) {
-            const baseDmg = Math.max(1, atk - Math.floor(def / 2));
-            const variance = Math.floor(baseDmg * 0.2);
-            let damage = baseDmg + Math.floor(Math.random() * variance * 2) - variance;
-            
-            const isCrit = Math.random() * 100 <= critChance;
-            if (isCrit) {
-                damage = Math.floor(damage * 1.5);
-            }
-
-            return { damage, isCrit };
-        }
-
-        // Update HP Bars
-        function updateHpBars() {
-            const player = gameState.player;
-            const enemy = gameState.currentEnemy;
-
-            if (!enemy) return;
-
-            const playerHpPercent = (player.hp / player.hpMax) * 100;
-            const enemyHpPercent = (enemy.hp / enemy.hpMax) * 100;
-
-            document.getElementById('playerHpFill').style.width = `${Math.max(0, playerHpPercent)}%`;
-            document.getElementById('enemyHpFill').style.width = `${Math.max(0, enemyHpPercent)}%`;
-            document.getElementById('playerHpText').textContent = `${Math.max(0, player.hp)}/${player.hpMax}`;
-            document.getElementById('enemyHpText').textContent = `${Math.max(0, enemy.hp)}/${enemy.hpMax}`;
-        }
-
-        // Add Log Entry
         function addLogEntry(text, type) {
             const log = document.getElementById('battleLog');
             const entry = document.createElement('div');
@@ -700,36 +581,41 @@
             log.scrollTop = log.scrollHeight;
         }
 
-        // Show Damage Popup
-        function showDamagePopup(target, damage, isCrit) {
-            const popup = document.createElement('div');
-            popup.className = `damage-popup ${isCrit ? 'crit' : ''}`;
-            popup.textContent = `-${damage}`;
-            
-            const arena = document.getElementById('battleArena');
-            const rect = arena.getBoundingClientRect();
-            
-            if (target === 'enemy') {
-                popup.style.left = `${rect.right - 150}px`;
-                popup.style.top = `${rect.top + 100}px`;
-            } else {
-                popup.style.left = `${rect.left + 50}px`;
-                popup.style.top = `${rect.top + 100}px`;
+        function loadInventory() {
+            tg.sendData(JSON.stringify({ action: 'get_inventory' }));
+        }
+
+        function showProfile() {
+            const p = gameState.player;
+            if (!p) {
+                document.getElementById('profileInfo').innerHTML = 'Загрузка...';
+                return;
             }
             
-            document.body.appendChild(popup);
-            setTimeout(() => popup.remove(), 1000);
+            document.getElementById('profileInfo').innerHTML = `
+                <div style="margin-bottom: 10px;"><strong>${p.name}</strong></div>
+                <div>Уровень: ${p.level}</div>
+                <div>HP: ${p.hp}/${p.hp_max}</div>
+                <div>Атака: ${p.atk}</div>
+                <div>Защита: ${p.def}</div>
+                <div>Золото: ${p.gold}</div>
+            `;
         }
 
-        // Back to Selection
-        function backToSelection() {
-            document.getElementById('battleArena').classList.remove('active');
-            document.getElementById('enemySelection').classList.remove('hidden');
-            document.getElementById('backBtn').style.display = 'none';
-            gameState.currentEnemy = null;
+        function loadShop() {
+            document.getElementById('shopList').innerHTML = '<div>🔜 Скоро будет доступно!</div>';
         }
 
-        // Sleep helper
+        function updateUI() {
+            const p = gameState.player;
+            if (!p) return;
+            
+            document.getElementById('playerName').textContent = p.name;
+            document.getElementById('playerLevel').textContent = p.level;
+            document.getElementById('playerHp').textContent = `${p.hp}/${p.hp_max}`;
+            document.getElementById('playerGold').textContent = p.gold;
+        }
+
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
@@ -741,24 +627,21 @@
                 console.log('Bot response:', response);
 
                 if (response.success && response.profile) {
-                    const p = response.profile;
-                    gameState.player = {
-                        name: p.name,
-                        level: p.level,
-                        hp: p.hp,
-                        hpMax: p.hp_max,
-                        atk: p.atk,
-                        def: p.def,
-                        crit: p.crit,
-                        gold: p.gold,
-                        class: p.class
-                    };
+                    gameState.player = response.profile;
+                    updateUI();
+                }
 
-                    // Update UI
-                    document.getElementById('playerName').textContent = p.name;
-                    document.getElementById('playerLevel').textContent = p.level;
-                    document.getElementById('playerHp').textContent = `${p.hp}/${p.hp_max}`;
-                    document.getElementById('playerGold').textContent = p.gold;
+                if (response.success && response.inventory !== undefined) {
+                    const inv = response.inventory;
+                    if (inv.length === 0) {
+                        document.getElementById('inventoryList').innerHTML = '🎒 Инвентарь пуст';
+                    } else {
+                        document.getElementById('inventoryList').innerHTML = inv.map(item => 
+                            `<div style="padding: 10px; background: rgba(255,255,255,0.1); margin: 5px 0; border-radius: 10px;">
+                                ${item.name} x${item.quantity}
+                            </div>`
+                        ).join('');
+                    }
                 }
             } catch (e) {
                 console.error('Parse error:', e);
