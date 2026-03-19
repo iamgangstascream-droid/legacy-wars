@@ -1,790 +1,769 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Legacy Wars</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-body {
-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-background: #0a0a0a;
-color: #ffffff;
-min-height: 100vh;
-overflow: hidden;
-position: relative;
-}
-.game-background {
-position: fixed;
-top: 0; left: 0;
-width: 100%; height: 100%;
-background-image: url('images/background.jpg');
-background-size: cover;
-background-position: center bottom;
-z-index: -3;
-animation: backgroundZoom 30s ease-in-out infinite;
-}
-@keyframes backgroundZoom {
-0%, 100% { transform: scale(1); }
-50% { transform: scale(1.05); }
-}
-.bg-overlay {
-position: fixed;
-top: 0; left: 0;
-width: 100%; height: 100%;
-background: linear-gradient(180deg, rgba(26,26,46,0.4) 0%, rgba(15,52,96,0.3) 100%);
-z-index: -2;
-}
-.loading {
-position: fixed;
-top: 0; left: 0; right: 0; bottom: 0;
-background: linear-gradient(135deg, #1a1a2e, #16213e);
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-z-index: 10000;
-}
-.loading.hidden { opacity: 0; pointer-events: none; }
-.loading-logo {
-font-size: 100px;
-margin-bottom: 30px;
-animation: pulse 1.5s ease-in-out infinite;
-}
-@keyframes pulse {
-0%, 100% { transform: scale(1); }
-50% { transform: scale(1.1); }
-}
-.loading-spinner {
-width: 60px; height: 60px;
-border: 5px solid rgba(255,255,255,0.1);
-border-top-color: #f39c12;
-border-radius: 50%;
-animation: spin 1s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.loading-text { margin-top: 20px; font-size: 18px; color: #aaa; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Legacy Wars - Battle</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-/* Character Creation */
-.character-creation {
-display: none;
-position: fixed;
-top: 0; left: 0; right: 0; bottom: 0;
-background: rgba(0,0,0,0.95);
-backdrop-filter: blur(15px);
-z-index: 5000;
-padding: 20px;
-overflow-y: auto;
-}
-.character-creation.active { display: flex; flex-direction: column; align-items: center; }
-.creation-title {
-font-size: 32px; font-weight: bold; margin: 30px 0 20px; text-align: center;
-background: linear-gradient(135deg, #f39c12, #e74c3c);
--webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.creation-subtitle { font-size: 16px; color: #ccc; margin-bottom: 30px; text-align: center; }
-.name-input {
-width: 100%; max-width: 300px; padding: 15px;
-border: 2px solid rgba(255,255,255,0.3); border-radius: 15px;
-background: rgba(255,255,255,0.15); color: white;
-font-size: 16px; margin-bottom: 30px; text-align: center;
-}
-.name-input:focus { outline: none; border-color: #f39c12; }
-.class-selection {
-display: grid; grid-template-columns: repeat(2, 1fr);
-gap: 15px; width: 100%; max-width: 500px; margin-bottom: 20px;
-}
-.class-card {
-background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3);
-border-radius: 15px; padding: 15px; text-align: center; cursor: pointer;
-transition: all 0.3s;
-}
-.class-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.25); }
-.class-card.selected {
-border-color: #f39c12; background: rgba(243,156,18,0.35);
-box-shadow: 0 0 25px rgba(243,156,18,0.6); transform: scale(1.05);
-}
-.class-icon { font-size: 48px; margin-bottom: 10px; }
-.class-name { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
-.class-stats { font-size: 11px; color: #ccc; }
-.create-btn {
-width: 100%; max-width: 300px; padding: 18px;
-background: linear-gradient(135deg, #f39c12, #e74c3c);
-border: none; border-radius: 15px; color: white;
-font-size: 18px; font-weight: bold; cursor: pointer;
-}
-.create-btn:active { transform: scale(0.95); }
-.create-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 15px;
+        }
 
-/* Game Screen */
-.game-screen {
-display: none; position: fixed;
-top: 0; left: 0; right: 0; bottom: 0;
-padding: 15px;
-}
-.game-screen.active { display: flex; flex-direction: column; }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
 
-/* Top Bar */
-.top-bar {
-background: rgba(0,0,0,0.7); backdrop-filter: blur(15px);
-border-radius: 20px; padding: 15px; margin-bottom: 20px;
-display: flex; align-items: center; justify-content: space-between;
-border: 1px solid rgba(255,255,255,0.2); z-index: 100;
-}
-.player-info { display: flex; align-items: center; gap: 12px; }
-.player-avatar {
-width: 55px; height: 55px; border-radius: 50%;
-background: linear-gradient(135deg, #f39c12, #e74c3c);
-display: flex; align-items: center; justify-content: center;
-font-size: 32px; border: 3px solid #fff; overflow: hidden;
-}
-.player-avatar img {
-width: 100%;
-height: 100%;
-object-fit: cover;
-background: transparent;
-}
-.player-details { display: flex; flex-direction: column; }
-.player-name { font-weight: bold; font-size: 16px; }
-.player-level { font-size: 12px; color: #f39c12; }
-.player-stats { display: flex; gap: 15px; }
-.stat-item {
-display: flex; align-items: center; gap: 5px;
-font-size: 14px; font-weight: 600;
-background: rgba(255,255,255,0.1);
-padding: 5px 10px; border-radius: 10px;
-}
+        /* Header Stats */
+        .header {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-/* Character Scene - INTEGRATED INTO WORLD */
-.character-scene {
-flex: 1;
-position: relative;
-display: flex;
-align-items: flex-end;
-justify-content: center;
-padding-bottom: 100px;
-perspective: 1000px;
-overflow: hidden;
-}
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-/* Ground shadow under character */
-.character-shadow {
-position: absolute;
-bottom: 120px;
-width: 280px; height: 90px;
-background: radial-gradient(ellipse, rgba(0,0,0,0.8) 0%, transparent 70%);
-border-radius: 50%;
-filter: blur(20px);
-animation: shadowPulse 4s ease-in-out infinite;
-z-index: 1;
-}
+        .avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f39c12, #e74c3c);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: 2px solid #fff;
+        }
 
-@keyframes shadowPulse {
-0%, 100% { transform: scale(1); opacity: 0.8; }
-50% { transform: scale(1.2); opacity: 1; }
-}
+        .stats {
+            display: flex;
+            gap: 15px;
+        }
 
-/* Character with depth integration */
-.character-container {
-position: relative;
-width: 400px;
-height: 600px;
-display: flex;
-align-items: flex-end;
-justify-content: center;
-z-index: 10;
-filter: drop-shadow(0 40px 80px rgba(0,0,0,0.9));
-animation: characterFloat 5s ease-in-out infinite;
-transform-style: preserve-3d;
-}
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            font-weight: 600;
+        }
 
-@keyframes characterFloat {
-0%, 100% { transform: translateY(0) rotateY(0deg); }
-25% { transform: translateY(-25px) rotateY(3deg); }
-75% { transform: translateY(-15px) rotateY(-3deg); }
-}
+        /* Battle Screen */
+        .battle-screen {
+            display: none;
+        }
 
-.character-sprite {
-width: 100%;
-height: 100%;
-object-fit: contain;
-object-position: bottom;
-background: transparent;
-/* Remove background, integrate with scene */
-}
+        .battle-screen.active {
+            display: block;
+        }
 
-.character-aura {
-position: absolute;
-bottom: 140px;
-width: 350px; height: 350px;
-background: radial-gradient(circle, 
-rgba(243,156,18,0.6) 0%, 
-rgba(231,76,60,0.4) 40%, 
-transparent 70%);
-border-radius: 50%;
-filter: blur(35px);
-animation: auraPulse 4s ease-in-out infinite;
-z-index: 5;
-}
+        /* Enemy Selection */
+        .enemy-selection {
+            display: block;
+        }
 
-@keyframes auraPulse {
-0%, 100% { transform: scale(1); opacity: 0.7; }
-50% { transform: scale(1.3); opacity: 1; }
-}
+        .enemy-selection.hidden {
+            display: none;
+        }
 
-/* Atmospheric particles */
-.particles {
-position: absolute;
-bottom: 120px;
-width: 100%;
-height: 500px;
-pointer-events: none;
-z-index: 8;
-}
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f39c12, #e74c3c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-.particle {
-position: absolute;
-width: 8px; height: 8px;
-background: rgba(243,156,18,0.9);
-border-radius: 50%;
-animation: particleFloat 5s ease-in-out infinite;
-box-shadow: 0 0 20px rgba(243,156,18,0.9);
-}
+        .enemy-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
 
-.particle:nth-child(1) { left: 10%; animation-delay: 0s; }
-.particle:nth-child(2) { left: 30%; animation-delay: 1.2s; }
-.particle:nth-child(3) { left: 50%; animation-delay: 2.4s; }
-.particle:nth-child(4) { left: 70%; animation-delay: 0.8s; }
-.particle:nth-child(5) { left: 90%; animation-delay: 1.6s; }
-.particle:nth-child(6) { left: 20%; animation-delay: 2s; }
-.particle:nth-child(7) { left: 80%; animation-delay: 0.5s; }
-.particle:nth-child(8) { left: 40%; animation-delay: 1.8s; }
-.particle:nth-child(9) { left: 60%; animation-delay: 2.2s; }
+        .enemy-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
 
-@keyframes particleFloat {
-0%, 100% { transform: translateY(0) scale(1); opacity: 0; }
-50% { transform: translateY(-200px) scale(2); opacity: 1; }
-}
+        .enemy-card:hover {
+            transform: translateX(5px);
+            border-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.2);
+        }
 
-/* Side Buttons */
-.side-buttons {
-position: absolute;
-width: 100%; height: 100%;
-pointer-events: none;
-z-index: 100;
-}
-.side-btn {
-position: absolute;
-width: 95px; height: 95px;
-border-radius: 25px;
-display: flex; flex-direction: column;
-align-items: center; justify-content: center;
-cursor: pointer; pointer-events: all;
-transition: all 0.3s;
-border: 3px solid rgba(255,255,255,0.4);
-backdrop-filter: blur(20px);
-box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-}
-.side-btn:active { transform: scale(0.88); }
-.side-btn.battle {
-left: 20px; top: 50%; transform: translateY(-50%);
-background: linear-gradient(135deg, rgba(231,76,60,0.9), rgba(192,57,43,0.9));
-}
-.side-btn.raid {
-right: 20px; top: 50%; transform: translateY(-50%);
-background: linear-gradient(135deg, rgba(155,89,182,0.9), rgba(142,68,173,0.9));
-}
-.side-btn.craft {
-left: 20px; bottom: 40px;
-background: linear-gradient(135deg, rgba(46,204,113,0.9), rgba(39,174,96,0.9));
-}
-.side-btn.shop {
-right: 20px; bottom: 40px;
-background: linear-gradient(135deg, rgba(241,196,15,0.9), rgba(243,156,18,0.9));
-}
-.btn-icon { font-size: 42px; margin-bottom: 5px; }
-.btn-label { font-size: 12px; font-weight: bold; }
+        .enemy-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-/* Bottom Menu */
-.bottom-menu {
-display: flex; justify-content: space-around; gap: 10px;
-padding: 12px; background: rgba(0,0,0,0.8);
-border-radius: 25px; backdrop-filter: blur(20px);
-z-index: 100; border: 1px solid rgba(255,255,255,0.2);
-}
-.menu-btn {
-flex: 1; padding: 14px;
-background: rgba(255,255,255,0.15);
-border: 2px solid rgba(255,255,255,0.3);
-border-radius: 18px; color: white;
-font-size: 12px; cursor: pointer;
-display: flex; flex-direction: column;
-align-items: center; gap: 5px;
-transition: all 0.3s;
-}
-.menu-btn:active { transform: scale(0.93); background: rgba(255,255,255,0.25); }
-.menu-icon { font-size: 28px; }
+        .enemy-icon {
+            font-size: 40px;
+        }
 
-/* Battle Modal */
-.modal {
-display: none; position: fixed;
-top: 0; left: 0; right: 0; bottom: 0;
-background: rgba(0,0,0,0.95);
-backdrop-filter: blur(15px);
-z-index: 3000; padding: 20px;
-}
-.modal.active { display: flex; flex-direction: column; align-items: center; }
-.modal-content {
-background: linear-gradient(135deg, rgba(26,26,46,0.98), rgba(22,33,62,0.98));
-border-radius: 30px; padding: 35px;
-max-width: 500px; width: 100%;
-border: 3px solid rgba(255,255,255,0.2);
-}
-.modal-title {
-font-size: 32px; font-weight: bold;
-margin-bottom: 30px; text-align: center;
-background: linear-gradient(135deg, #f39c12, #e74c3c);
--webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.close-modal {
-position: absolute; top: 25px; right: 25px;
-font-size: 40px; cursor: pointer; color: #aaa;
-}
-.monster-card {
-background: rgba(255,255,255,0.15);
-border-radius: 20px; padding: 20px;
-margin-bottom: 15px;
-display: flex; align-items: center; justify-content: space-between;
-cursor: pointer; transition: all 0.3s;
-border: 2px solid transparent;
-}
-.monster-card:hover {
-transform: translateX(12px);
-border-color: #e74c3c;
-background: rgba(231,76,60,0.3);
-}
-.monster-info { display: flex; align-items: center; gap: 18px; }
-.monster-icon { font-size: 56px; }
-.monster-details h3 { font-size: 18px; margin-bottom: 6px; }
-.monster-stats { font-size: 12px; color: #ccc; }
-.fight-btn {
-padding: 12px 28px;
-background: linear-gradient(135deg, #e74c3c, #c0392b);
-border: none; border-radius: 12px;
-color: white; font-weight: bold; cursor: pointer;
-font-size: 14px;
-}
-.battle-log {
-background: rgba(0,0,0,0.6);
-border-radius: 15px; padding: 18px;
-margin-top: 20px; max-height: 250px;
-overflow-y: auto; display: none;
-}
-.battle-entry {
-padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.1);
-font-size: 14px;
-}
-.battle-entry.player { color: #2ecc71; }
-.battle-entry.monster { color: #e74c3c; }
-.battle-entry.crit { color: #f39c12; font-weight: bold; font-size: 15px; }
+        .enemy-details h3 {
+            font-size: 16px;
+            margin-bottom: 3px;
+        }
 
-/* Notification */
-.notification {
-position: fixed; top: 25px; left: 50%;
-transform: translateX(-50%);
-background: rgba(46,204,113,0.98);
-color: white; padding: 16px 35px;
-border-radius: 15px; font-weight: bold;
-z-index: 10000; animation: slideDown 0.3s ease-out;
-box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-}
-.notification.error { background: rgba(231,76,60,0.98); }
-@keyframes slideDown {
-from { top: -60px; opacity: 0; }
-to { top: 25px; opacity: 1; }
-}
+        .enemy-stats {
+            font-size: 12px;
+            color: #aaa;
+        }
 
-@media (max-width: 480px) {
-.class-selection { grid-template-columns: 1fr; }
-.character-container { width: 320px; height: 480px; }
-.character-shadow { width: 220px; height: 70px; bottom: 100px; }
-.character-aura { width: 280px; height: 280px; bottom: 120px; }
-.side-btn { width: 85px; height: 85px; }
-.btn-icon { font-size: 38px; }
-}
-</style>
+        .fight-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* Battle Arena */
+        .battle-arena {
+            display: none;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .battle-arena.active {
+            display: block;
+        }
+
+        .fighters {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        .fighter {
+            text-align: center;
+            flex: 1;
+        }
+
+        .fighter-icon {
+            font-size: 80px;
+            margin-bottom: 10px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .fighter-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .hp-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            transition: width 0.5s ease;
+        }
+
+        .hp-text {
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .vs {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f39c12;
+            margin: 0 20px;
+        }
+
+        /* Battle Log */
+        .battle-log {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .log-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .log-entry.player {
+            color: #2ecc71;
+        }
+
+        .log-entry.enemy {
+            color: #e74c3c;
+        }
+
+        .log-entry.crit {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .log-entry.loot {
+            color: #9b59b6;
+        }
+
+        .log-entry.win {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .log-entry.lose {
+            color: #c0392b;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }
+
+        /* Damage Animation */
+        .damage-popup {
+            position: fixed;
+            font-size: 32px;
+            font-weight: bold;
+            color: #e74c3c;
+            pointer-events: none;
+            animation: damageFloat 1s ease-out forwards;
+            z-index: 1000;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        @keyframes damageFloat {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px) scale(1.5);
+            }
+        }
+
+        .damage-popup.crit {
+            color: #f39c12;
+            font-size: 40px;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #f39c12;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
 </head>
 <body>
-<div class="game-background"></div>
-<div class="bg-overlay"></div>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="player-info">
+                <div class="avatar" id="playerAvatar">⚔️</div>
+                <div>
+                    <div style="font-weight: bold;" id="playerName">Игрок</div>
+                    <div style="font-size: 12px; color: #f39c12;">Ур. <span id="playerLevel">1</span></div>
+                </div>
+            </div>
+            <div class="stats">
+                <div class="stat">
+                    <span>❤️</span>
+                    <span id="playerHp">100/100</span>
+                </div>
+                <div class="stat">
+                    <span>💰</span>
+                    <span id="playerGold">100</span>
+                </div>
+            </div>
+        </div>
 
-<!-- Loading -->
-<div class="loading" id="loading">
-<div class="loading-logo">⚔️</div>
-<div class="loading-spinner"></div>
-<div class="loading-text">Загрузка Legacy Wars...</div>
-</div>
+        <!-- Enemy Selection -->
+        <div class="enemy-selection" id="enemySelection">
+            <h1 class="title">⚔️ ВЫБЕРИ ПРОТИВНИКА</h1>
+            <div class="enemy-list" id="enemyList">
+                <!-- Enemies will be loaded here -->
+            </div>
+        </div>
 
-<!-- Character Creation -->
-<div class="character-creation" id="characterCreation">
-<h1 class="creation-title">🎮 ВЫБЕРИ ГЕРОЯ</h1>
-<p class="creation-subtitle">Введи имя и выбери класс</p>
+        <!-- Battle Arena -->
+        <div class="battle-arena" id="battleArena">
+            <h1 class="title">⚔️ БИТВА</h1>
+            
+            <div class="fighters">
+                <div class="fighter">
+                    <div class="fighter-icon" id="playerFighterIcon">⚔️</div>
+                    <div class="fighter-name" id="playerFighterName">Игрок</div>
+                    <div class="hp-bar">
+                        <div class="hp-fill" id="playerHpFill" style="width: 100%"></div>
+                    </div>
+                    <div class="hp-text" id="playerHpText">100/100</div>
+                </div>
+                
+                <div class="vs">VS</div>
+                
+                <div class="fighter">
+                    <div class="fighter-icon" id="enemyFighterIcon">🐀</div>
+                    <div class="fighter-name" id="enemyFighterName">Крыса</div>
+                    <div class="hp-bar">
+                        <div class="hp-fill" id="enemyHpFill" style="width: 100%"></div>
+                    </div>
+                    <div class="hp-text" id="enemyHpText">30/30</div>
+                </div>
+            </div>
 
-<input type="text" class="name-input" id="characterName" placeholder="Имя героя..." maxlength="20">
+            <div class="battle-log" id="battleLog">
+                <!-- Battle log entries -->
+            </div>
 
-<div class="class-selection">
-<div class="class-card" data-class="warrior">
-<div class="class-icon">⚔️</div>
-<div class="class-name">Воин</div>
-<div class="class-stats">HP: 150 | ATK: 15 | DEF: 10</div>
-</div>
-<div class="class-card" data-class="mage">
-<div class="class-icon">🔮</div>
-<div class="class-name">Маг</div>
-<div class="class-stats">HP: 80 | ATK: 25 | DEF: 3</div>
-</div>
-<div class="class-card" data-class="rogue">
-<div class="class-icon">🗡️</div>
-<div class="class-name">Разбойник</div>
-<div class="class-stats">HP: 100 | ATK: 20 | DEF: 5</div>
-</div>
-<div class="class-card" data-class="paladin">
-<div class="class-icon">🛡️</div>
-<div class="class-name">Паладин</div>
-<div class="class-stats">HP: 130 | ATK: 12 | DEF: 15</div>
-</div>
-</div>
+            <div class="action-buttons">
+                <button class="action-btn back-btn" onclick="backToSelection()" id="backBtn">↩️ Назад</button>
+            </div>
+        </div>
 
-<button class="create-btn" id="createCharacterBtn" disabled>⚔️ НАЧАТЬ ИГРУ</button>
-</div>
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>Загрузка...</div>
+        </div>
+    </div>
 
-<!-- Game Screen -->
-<div class="game-screen" id="gameScreen">
-<div class="top-bar">
-<div class="player-info">
-<div class="player-avatar" id="playerAvatar">
-<img src="" alt="Avatar" id="playerAvatarImg" style="display:none;">
-<span id="playerAvatarText">⚔️</span>
-</div>
-<div class="player-details">
-<div class="player-name" id="playerName">Игрок</div>
-<div class="player-level" id="playerLevel">Ур. 1</div>
-</div>
-</div>
-<div class="player-stats">
-<div class="stat-item">❤️ <span id="playerHp">100/100</span></div>
-<div class="stat-item">🪙 <span id="playerGold">100</span></div>
-</div>
-</div>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
 
-<div class="character-scene">
-<div class="character-shadow"></div>
-<div class="character-aura"></div>
+        // Game State
+        let gameState = {
+            player: {
+                name: 'Игрок',
+                level: 1,
+                hp: 100,
+                hpMax: 100,
+                atk: 15,
+                def: 10,
+                crit: 5,
+                gold: 100,
+                class: 'warrior'
+            },
+            currentEnemy: null,
+            battleInProgress: false
+        };
 
-<div class="character-container">
-<img src="" alt="Character" class="character-sprite" id="characterSprite">
-</div>
+        // Enemies Data
+        const enemies = [
+            { id: 0, name: 'Крыса', icon: '🐀', level: 1, hp: 30, atk: 5, exp: 10, gold: 5, drop: ['potion_small'] },
+            { id: 1, name: 'Волк', icon: '🐺', level: 3, hp: 60, atk: 12, exp: 25, gold: 15, drop: ['potion_small', 'armor_cloth'] },
+            { id: 2, name: 'Медведь', icon: '🐻', level: 5, hp: 120, atk: 20, exp: 50, gold: 40, drop: ['potion_medium', 'armor_leather'] },
+            { id: 3, name: 'Змей', icon: '🐍', level: 7, hp: 80, atk: 25, exp: 60, gold: 50, drop: ['dagger_iron'] },
+            { id: 4, name: 'Гоблин', icon: '👺', level: 8, hp: 100, atk: 22, exp: 75, gold: 60, drop: ['sword_iron', 'gold_ore'] },
+            { id: 5, name: 'Зомби', icon: '🧟', level: 10, hp: 150, atk: 18, exp: 90, gold: 70, drop: ['potion_medium'] },
+            { id: 6, name: 'Орк', icon: '👹', level: 12, hp: 200, atk: 35, exp: 120, gold: 100, drop: ['armor_chain', 'sword_steel'] },
+            { id: 7, name: 'Паук-гигант', icon: '🕷️', level: 15, hp: 180, atk: 40, exp: 150, gold: 130, drop: ['dagger_shadow'] },
+            { id: 8, name: 'Молодой дракон', icon: '🐉', level: 20, hp: 500, atk: 60, exp: 500, gold: 1000, drop: ['dragon_scale', 'armor_plate'] },
+            { id: 9, name: 'Демон', icon: '👿', level: 25, hp: 800, atk: 80, exp: 1000, gold: 2000, drop: ['amulet_crit'] }
+        ];
 
-<!-- Floating particles for atmosphere -->
-<div class="particles">
-<div class="particle"></div>
-<div class="particle"></div>
-<div class="particle"></div>
-<div class="particle"></div>
-<div class="particle"></div>
-<div class="particle"></div>
-<div class="particle"></div>
-<div class="particle"></div>
-<div class="particle"></div>
-</div>
+        // Items Data
+        const items = {
+            'potion_small': { name: 'Малое зелье', icon: '🧪' },
+            'potion_medium': { name: 'Среднее зелье', icon: '🧪' },
+            'armor_cloth': { name: 'Тканевая броня', icon: '👕' },
+            'armor_leather': { name: 'Кожаная броня', icon: '🧥' },
+            'dagger_iron': { name: 'Железный кинжал', icon: '🗡️' },
+            'sword_iron': { name: 'Железный меч', icon: '⚔️' },
+            'gold_ore': { name: 'Золотая руда', icon: '⛏️' },
+            'armor_chain': { name: 'Кольчуга', icon: '⛓️' },
+            'sword_steel': { name: 'Стальной меч', icon: '🗡️' },
+            'dagger_shadow': { name: 'Теневой клинок', icon: '🌑' },
+            'dragon_scale': { name: 'Чешуя дракона', icon: '🐉' },
+            'armor_plate': { name: 'Латы', icon: '🛡️' },
+            'amulet_crit': { name: 'Амулет крита', icon: '📿' }
+        };
 
-<div class="side-buttons">
-<div class="side-btn battle" onclick="openBattle()">
-<div class="btn-icon">⚔️</div>
-<div class="btn-label">БИТВА</div>
-</div>
-<div class="side-btn raid" onclick="openRaid()">
-<div class="btn-icon">👹</div>
-<div class="btn-label">РЕЙД</div>
-</div>
-<div class="side-btn craft" onclick="openCraft()">
-<div class="btn-icon">🔨</div>
-<div class="btn-label">КРАФТ</div>
-</div>
-<div class="side-btn shop" onclick="openShop()">
-<div class="btn-icon">🏪</div>
-<div class="btn-label">МАГАЗИН</div>
-</div>
-</div>
-</div>
+        // Initialize
+        window.onload = async function() {
+            await loadPlayerData();
+            renderEnemyList();
+        };
 
-<div class="bottom-menu">
-<button class="menu-btn" onclick="showInventory()">
-<span class="menu-icon">🎒</span><span>Инвентарь</span>
-</button>
-<button class="menu-btn" onclick="showProfile()">
-<span class="menu-icon">📊</span><span>Профиль</span>
-</button>
-<button class="menu-btn" onclick="showSettings()">
-<span class="menu-icon">⚙️</span><span>Настройки</span>
-</button>
-</div>
-</div>
+        // Load Player Data from Bot
+        async function loadPlayerData() {
+            tg.sendData(JSON.stringify({ action: 'get_profile' }));
+        }
 
-<!-- Battle Modal -->
-<div class="modal" id="battleModal">
-<span class="close-modal" onclick="closeModal('battleModal')">&times;</span>
-<div class="modal-content">
-<h2 class="modal-title">⚔️ ВЫБЕРИ ПРОТИВНИКА</h2>
-<div id="monstersList"></div>
-<div class="battle-log" id="battleLog"></div>
-</div>
-</div>
+        // Render Enemy List
+        function renderEnemyList() {
+            const list = document.getElementById('enemyList');
+            list.innerHTML = '';
 
-<script>
-const tg = window.Telegram.WebApp;
-tg.expand();
-tg.ready();
+            enemies.forEach(enemy => {
+                const card = document.createElement('div');
+                card.className = 'enemy-card';
+                card.innerHTML = `
+                    <div class="enemy-info">
+                        <div class="enemy-icon">${enemy.icon}</div>
+                        <div class="enemy-details">
+                            <h3>${enemy.name}</h3>
+                            <div class="enemy-stats">Ур. ${enemy.level} | HP: ${enemy.hp} | ATK: ${enemy.atk}</div>
+                        </div>
+                    </div>
+                    <button class="fight-btn" onclick="startBattle(${enemy.id})">⚔️ БОЙ</button>
+                `;
+                list.appendChild(card);
+            });
+        }
 
-const CHARACTER_DATA = {
-'warrior': { emoji: '⚔️', image: 'images/warrior.png', name: 'Воин' },
-'mage': { emoji: '🔮', image: 'images/mage.png', name: 'Маг' },
-'rogue': { emoji: '🗡️', image: 'images/rogue.png', name: 'Разбойник' },
-'paladin': { emoji: '🛡️', image: 'images/paladin.png', name: 'Паладин' }
-};
+        // Start Battle
+        async function startBattle(enemyId) {
+            const enemy = enemies[enemyId];
+            gameState.currentEnemy = { ...enemy };
+            gameState.battleInProgress = true;
 
-const MONSTERS = [
-{ id: 0, name: 'Крыса', emoji: '🐀', level: 1, hp: 30, atk: 5, exp: 10, gold: 5 },
-{ id: 1, name: 'Волк', emoji: '🐺', level: 3, hp: 60, atk: 12, exp: 25, gold: 15 },
-{ id: 2, name: 'Медведь', emoji: '🐻', level: 5, hp: 120, atk: 20, exp: 50, gold: 40 },
-{ id: 3, name: 'Орк', emoji: '👹', level: 10, hp: 200, atk: 35, exp: 120, gold: 100 },
-{ id: 4, name: 'Дракон', emoji: '🐉', level: 20, hp: 500, atk: 60, exp: 500, gold: 1000 }
-];
+            // Update UI
+            document.getElementById('enemySelection').classList.add('hidden');
+            document.getElementById('battleArena').classList.add('active');
+            document.getElementById('battleLog').innerHTML = '';
 
-let gameState = {
-userId: tg.initDataUnsafe?.user?.id || 0,
-name: tg.initDataUnsafe?.user?.first_name || 'Player',
-characterCreated: false,
-selectedClass: null,
-level: 1,
-hp: 100,
-hpMax: 100,
-gold: 100,
-class: 'warrior'
-};
+            // Set fighter info
+            document.getElementById('enemyFighterIcon').textContent = enemy.icon;
+            document.getElementById('enemyFighterName').textContent = enemy.name;
+            updateHpBars();
 
-window.onload = async function() {
-await sleep(1500);
-document.getElementById('loading').classList.add('hidden');
-await checkCharacter();
-};
+            // Add battle start log
+            addLogEntry(`⚔️ Бой начался! Ты сражаешься против ${enemy.name}!`, 'normal');
 
-function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+            // Start battle loop
+            await battleLoop();
+        }
 
-async function checkCharacter() {
-tg.sendData(JSON.stringify({ action: 'get_profile' }));
-setTimeout(() => {
-if (!gameState.characterCreated) {
-showCharacterCreation();
-}
-}, 2000);
-}
+        // Battle Loop
+        async function battleLoop() {
+            const player = gameState.player;
+            const enemy = gameState.currentEnemy;
+            let round = 0;
+            let playerHp = player.hp;
+            let enemyHp = enemy.hp;
 
-function showCharacterCreation() {
-document.getElementById('characterCreation').classList.add('active');
-}
+            while (playerHp > 0 && enemyHp > 0 && round < 50) {
+                round++;
+                await sleep(800);
 
-function showGameScreen() {
-document.getElementById('gameScreen').classList.add('active');
-updateUI();
-}
+                // Player attack
+                const playerDmg = calculateDamage(player.atk, 0, player.crit);
+                enemyHp -= playerDmg.damage;
+                
+                let logText = `🗡️ Ты нанёс ${playerDmg.damage} урона`;
+                if (playerDmg.isCrit) {
+                    logText += ' 💥КРИТ!';
+                    showDamagePopup('enemy', playerDmg.damage, true);
+                } else {
+                    showDamagePopup('enemy', playerDmg.damage, false);
+                }
+                addLogEntry(logText, 'player');
+                
+                updateHpBars();
+                
+                if (enemyHp <= 0) break;
 
-document.querySelectorAll('.class-card').forEach(card => {
-card.addEventListener('click', function() {
-document.querySelectorAll('.class-card').forEach(c => c.classList.remove('selected'));
-this.classList.add('selected');
-gameState.selectedClass = this.dataset.class;
-document.getElementById('createCharacterBtn').disabled = 
-!document.getElementById('characterName').value.trim();
-});
-});
+                await sleep(800);
 
-document.getElementById('characterName').addEventListener('input', function() {
-document.getElementById('createCharacterBtn').disabled = 
-!this.value.trim() || !gameState.selectedClass;
-});
+                // Enemy attack
+                const enemyDmg = Math.max(1, enemy.atk - Math.floor(player.def / 2));
+                const variance = Math.floor(enemyDmg * 0.2);
+                const finalDmg = enemyDmg + Math.floor(Math.random() * variance * 2) - variance;
+                
+                playerHp -= finalDmg;
+                addLogEntry(`💔 ${enemy.name} нанёс ${finalDmg} урона`, 'enemy');
+                showDamagePopup('player', finalDmg, false);
+                
+                updateHpBars();
+            }
 
-document.getElementById('createCharacterBtn').addEventListener('click', function() {
-const name = document.getElementById('characterName').value.trim();
-if (!name || !gameState.selectedClass) return;
+            // Battle end
+            await sleep(1000);
+            
+            if (playerHp <= 0) {
+                // Defeat
+                addLogEntry(`💀 Ты пал в бою...`, 'lose');
+                tg.sendData(JSON.stringify({ 
+                    action: 'battle_result', 
+                    win: false, 
+                    enemy_id: enemy.id 
+                }));
+            } else {
+                // Victory
+                const expGain = enemy.exp;
+                const goldGain = enemy.gold;
+                
+                addLogEntry(`🏆 ПОБЕДА!`, 'win');
+                addLogEntry(`⭐ Получено: ${expGain} опыта`, 'loot');
+                addLogEntry(`💰 Получено: ${goldGain} золота`, 'loot');
 
-tg.sendData(JSON.stringify({
-action: 'create_character',
-name: name,
-class: gameState.selectedClass
-}));
+                // Drop items
+                if (enemy.drop && Math.random() < 0.3) {
+                    const dropItem = enemy.drop[Math.floor(Math.random() * enemy.drop.length)];
+                    const item = items[dropItem];
+                    addLogEntry(`🎁 Выпало: ${item.icon} ${item.name}`, 'loot');
+                }
 
-gameState.name = name;
-gameState.class = gameState.selectedClass;
-gameState.characterCreated = true;
+                // Update player stats
+                player.gold += goldGain;
+                player.hp = Math.max(1, playerHp);
+                document.getElementById('playerGold').textContent = player.gold;
+                document.getElementById('playerHp').textContent = `${player.hp}/${player.hpMax}`;
 
-showNotification('✅ Персонаж создан!');
+                tg.sendData(JSON.stringify({ 
+                    action: 'battle_result', 
+                    win: true, 
+                    enemy_id: enemy.id,
+                    gold: goldGain,
+                    exp: expGain
+                }));
+            }
 
-setTimeout(() => {
-document.getElementById('characterCreation').classList.remove('active');
-showGameScreen();
-}, 1000);
-});
+            gameState.battleInProgress = false;
+            
+            // Show back button
+            setTimeout(() => {
+                document.getElementById('backBtn').style.display = 'block';
+            }, 2000);
+        }
 
-function updateUI() {
-document.getElementById('playerName').textContent = gameState.name;
-document.getElementById('playerLevel').textContent = `Ур. ${gameState.level}`;
-document.getElementById('playerHp').textContent = `${gameState.hp}/${gameState.hpMax}`;
-document.getElementById('playerGold').textContent = gameState.gold;
+        // Calculate Damage
+        function calculateDamage(atk, def, critChance) {
+            const baseDmg = Math.max(1, atk - Math.floor(def / 2));
+            const variance = Math.floor(baseDmg * 0.2);
+            let damage = baseDmg + Math.floor(Math.random() * variance * 2) - variance;
+            
+            const isCrit = Math.random() * 100 <= critChance;
+            if (isCrit) {
+                damage = Math.floor(damage * 1.5);
+            }
 
-const charData = CHARACTER_DATA[gameState.class] || CHARACTER_DATA['warrior'];
-const avatarImg = document.getElementById('playerAvatarImg');
-const avatarText = document.getElementById('playerAvatarText');
-const charSprite = document.getElementById('characterSprite');
+            return { damage, isCrit };
+        }
 
-// Load character image
-if (charData.image) {
-avatarImg.src = charData.image;
-avatarImg.style.display = 'block';
-avatarText.style.display = 'none';
+        // Update HP Bars
+        function updateHpBars() {
+            const player = gameState.player;
+            const enemy = gameState.currentEnemy;
 
-charSprite.src = charData.image;
-charSprite.style.display = 'block';
-} else {
-avatarImg.style.display = 'none';
-avatarText.style.display = 'block';
-avatarText.textContent = charData.emoji;
-charSprite.style.display = 'none';
-}
-}
+            if (!enemy) return;
 
-function openBattle() {
-const modal = document.getElementById('battleModal');
-const list = document.getElementById('monstersList');
-const battleLog = document.getElementById('battleLog');
-list.innerHTML = '';
-battleLog.style.display = 'none';
-battleLog.innerHTML = '';
+            const playerHpPercent = (player.hp / player.hpMax) * 100;
+            const enemyHpPercent = (enemy.hp / enemy.hpMax) * 100;
 
-MONSTERS.forEach(monster => {
-const card = document.createElement('div');
-card.className = 'monster-card';
-card.innerHTML = `
-<div class="monster-info">
-<div class="monster-icon">${monster.emoji}</div>
-<div class="monster-details">
-<h3>${monster.name}</h3>
-<div class="monster-stats">Ур. ${monster.level} | HP: ${monster.hp} | ATK: ${monster.atk}</div>
-</div>
-</div>
-<button class="fight-btn" onclick="fightMonster(${monster.id})">⚔️ БОЙ</button>
-`;
-list.appendChild(card);
-});
+            document.getElementById('playerHpFill').style.width = `${Math.max(0, playerHpPercent)}%`;
+            document.getElementById('enemyHpFill').style.width = `${Math.max(0, enemyHpPercent)}%`;
+            document.getElementById('playerHpText').textContent = `${Math.max(0, player.hp)}/${player.hpMax}`;
+            document.getElementById('enemyHpText').textContent = `${Math.max(0, enemy.hp)}/${enemy.hpMax}`;
+        }
 
-modal.classList.add('active');
-}
+        // Add Log Entry
+        function addLogEntry(text, type) {
+            const log = document.getElementById('battleLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = text;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
 
-async function fightMonster(monsterId) {
-const monster = MONSTERS[monsterId];
-const battleLog = document.getElementById('battleLog');
-battleLog.style.display = 'block';
-battleLog.innerHTML = '<div class="battle-entry">⚔️ Бой начался!</div>';
+        // Show Damage Popup
+        function showDamagePopup(target, damage, isCrit) {
+            const popup = document.createElement('div');
+            popup.className = `damage-popup ${isCrit ? 'crit' : ''}`;
+            popup.textContent = `-${damage}`;
+            
+            const arena = document.getElementById('battleArena');
+            const rect = arena.getBoundingClientRect();
+            
+            if (target === 'enemy') {
+                popup.style.left = `${rect.right - 150}px`;
+                popup.style.top = `${rect.top + 100}px`;
+            } else {
+                popup.style.left = `${rect.left + 50}px`;
+                popup.style.top = `${rect.top + 100}px`;
+            }
+            
+            document.body.appendChild(popup);
+            setTimeout(() => popup.remove(), 1000);
+        }
 
-tg.sendData(JSON.stringify({ action: 'battle', monster_id: monsterId }));
-}
+        // Back to Selection
+        function backToSelection() {
+            document.getElementById('battleArena').classList.remove('active');
+            document.getElementById('enemySelection').classList.remove('hidden');
+            document.getElementById('backBtn').style.display = 'none';
+            gameState.currentEnemy = null;
+        }
 
-function openRaid() { showNotification('👹 Скоро будет!'); }
-function openCraft() { showNotification('🔨 Скоро будет!'); }
-function openShop() { showNotification('🏪 Скоро будет!'); }
-function showInventory() { showNotification('🎒 Скоро будет!'); }
-function showProfile() { showNotification('📊 Скоро будет!'); }
-function showSettings() { showNotification('⚙️ Скоро будет!'); }
+        // Sleep helper
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
 
-function closeModal(modalId) {
-document.getElementById(modalId).classList.remove('active');
-}
+        // Handle messages from bot
+        tg.onEvent('message', (data) => {
+            try {
+                const response = JSON.parse(data);
+                console.log('Bot response:', response);
 
-function showNotification(message, isError = false) {
-const notif = document.createElement('div');
-notif.className = `notification ${isError ? 'error' : ''}`;
-notif.textContent = message;
-document.body.appendChild(notif);
-setTimeout(() => notif.remove(), 3000);
-}
+                if (response.success && response.profile) {
+                    const p = response.profile;
+                    gameState.player = {
+                        name: p.name,
+                        level: p.level,
+                        hp: p.hp,
+                        hpMax: p.hp_max,
+                        atk: p.atk,
+                        def: p.def,
+                        crit: p.crit,
+                        gold: p.gold,
+                        class: p.class
+                    };
 
-tg.onEvent('message', (data) => {
-try {
-const response = JSON.parse(data);
-console.log('Bot response:', response);
-
-if (response.success && response.profile) {
-const p = response.profile;
-gameState.name = p.name;
-gameState.level = p.level;
-gameState.hp = p.hp;
-gameState.hpMax = p.hp_max;
-gameState.gold = p.gold;
-gameState.class = p.class;
-gameState.characterCreated = true;
-updateUI();
-}
-
-if (response.success && response.battle_log) {
-const battleLog = document.getElementById('battleLog');
-battleLog.innerHTML = '';
-
-response.battle_log.forEach(entry => {
-const div = document.createElement('div');
-div.className = 'battle-entry';
-
-if (entry.type === 'player_attack') {
-div.classList.add('player');
-if (entry.crit) div.classList.add('crit');
-div.textContent = `🗡️ Ты нанёс ${entry.damage} урона ${entry.crit ? '💥КРИТ!' : ''}`;
-} else if (entry.type === 'monster_attack') {
-div.classList.add('monster');
-div.textContent = `💔 Враг нанёс ${entry.damage} урона | Твоё HP: ${entry.player_hp}`;
-}
-
-battleLog.appendChild(div);
-battleLog.scrollTop = battleLog.scrollHeight;
-});
-
-if (response.win) {
-battleLog.innerHTML += `<div class="battle-entry crit">🏆 ПОБЕДА! +${response.gold}🪙 +${response.exp}⭐</div>`;
-if (response.level_up) {
-battleLog.innerHTML += `<div class="battle-entry crit">🎉 НОВЫЙ УРОВЕНЬ ${response.new_level}!</div>`;
-}
-if (response.drop) {
-battleLog.innerHTML += `<div class="battle-entry crit">🎁 Выпало: ${response.drop}</div>`;
-}
-if (response.player) {
-gameState.gold = response.player.gold;
-gameState.level = response.player.level;
-gameState.hp = response.player.hp;
-updateUI();
-}
-} else {
-battleLog.innerHTML += '<div class="battle-entry monster">💀 ПОРАЖЕНИЕ...</div>';
-}
-}
-} catch (e) {
-console.error('Parse error:', e);
-}
-});
-
-window.onclick = function(event) {
-if (event.target.classList.contains('modal')) {
-event.target.classList.remove('active');
-}
-}
-</script>
+                    // Update UI
+                    document.getElementById('playerName').textContent = p.name;
+                    document.getElementById('playerLevel').textContent = p.level;
+                    document.getElementById('playerHp').textContent = `${p.hp}/${p.hp_max}`;
+                    document.getElementById('playerGold').textContent = p.gold;
+                }
+            } catch (e) {
+                console.error('Parse error:', e);
+            }
+        });
+    </script>
 </body>
 </html>
