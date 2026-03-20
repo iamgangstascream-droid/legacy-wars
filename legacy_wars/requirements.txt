@@ -1,5 +1,5 @@
 flask==3.0.0
 flask-cors==4.0.0
-python-telegram-bot[all]==21.0
+python-telegram-bot==21.0.1
 python-dotenv==1.0.0
-httpx[http2]
+httpx[http2]>=0.25.0
