@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Legacy War RPG</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #0a0a0c;
+            --panel-bg: rgba(20, 20, 25, 0.85);
+            --accent-color: #f39c12;
+            --text-color: #e0e0e0;
+            --border-color: rgba(243, 156, 18, 0.3);
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Layout */
+        #game-wrapper {
+            display: grid;
+            grid-template-columns: 80px 1fr 80px;
+            grid-template-rows: 1fr 70px;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        /* Center Display */
+        #center-display {
+            grid-column: 1 / span 3;
+            grid-row: 1 / span 2;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #background-layer {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('images/background.jpg');
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.6);
+            z-index: 1;
+        }
+
+        #character-layer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            height: 60%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s ease;
+        }
+
+        #character-img {
+            max-height: 100%;
+            filter: drop-shadow(0 0 20px rgba(0,0,0,0.8));
+            animation: idle-float 4s ease-in-out infinite;
+        }
+
+        @keyframes idle-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Sidebars */
+        .sidebar {
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 10px 0;
+            z-index: 10;
+            border-radius: 0;
+        }
+
+        #left-sidebar { grid-column: 1; grid-row: 1; border-right: 1px solid rgba(255,255,255,0.05); }
+        #right-sidebar { grid-column: 3; grid-row: 1; border-left: 1px solid rgba(255,255,255,0.05); }
+
+        /* Bottom Menu */
+        #bottom-menu {
+            grid-column: 1 / span 3;
+            grid-row: 2;
+            background: rgba(20, 20, 25, 0.8);
+            backdrop-filter: blur(15px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            z-index: 10;
+        }
+
+        /* Buttons */
+        .menu-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: transform 0.2s, color 0.2s;
+            width: 100%;
+        }
+
+        .menu-btn:active { transform: scale(0.9); }
+        .menu-btn.active { color: var(--accent-color); }
+
+        .menu-btn i { font-size: 24px; }
+        .menu-btn span { font-size: 10px; font-weight: bold; text-transform: uppercase; }
+
+        /* Overlays / Sections */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .overlay.active { display: flex; }
+
+        .overlay-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* Character Creation */
+        #creation-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .class-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .class-card {
+            background: var(--panel-bg);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .class-card.selected {
+            border-color: var(--accent-color);
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .class-card img {
+            width: 80px;
+            height: 100px;
+            object-fit: contain;
+        }
+
+        .class-card h3 { font-size: 14px; margin-top: 5px; }
+
+        #name-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .start-btn {
+            background: var(--accent-color);
+            color: black;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        /* Stats Bar (Top of Center) */
+        #stats-bar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .stat-item {
+            background: rgba(0,0,0,0.6);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Loading */
+        #loading-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Generic List Styles */
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .list-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .item-info h4 { margin-bottom: 3px; }
+        .item-info p { font-size: 12px; color: #aaa; }
+
+        .action-btn {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-primary { background: var(--accent-color); color: black; }
+    </style>
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>Загрузка Legacy War...</p>
+    </div>
+
+    <div id="creation-screen">
+        <h1>Legacy War</h1>
+        <p style="margin-top: 10px; color: #aaa;">Создайте своего героя</p>
+        
+        <div class="class-selector">
+            <div class="class-card" onclick="selectClass('warrior')" id="card-warrior">
+                <img src="images/warrior.png" alt="Warrior">
+                <h3>Воин</h3>
+            </div>
+            <div class="class-card" onclick="selectClass('mage')" id="card-mage">
+                <img src="images/mage.png" alt="Mage">
+                <h3>Маг</h3>
+            </div>
+            <div class="class-card" onclick="selectClass('rogue')" id="card-rogue">
+                <img src="images/rogue.png" alt="Rogue">
+                <h3>Разбойник</h3>
+            </div>
+            <div class="class-card" onclick="selectClass('paladin')" id="card-paladin">
+                <img src="images/paladin.png" alt="Paladin">
+                <h3>Паладин</h3>
+            </div>
+        </div>
+
+        <input type="text" id="name-input" placeholder="Введите имя героя" maxlength="15">
+        <button class="start-btn" onclick="finishCreation()">НАЧАТЬ ПРИКЛЮЧЕНИЕ</button>
+    </div>
+
+    <div id="game-wrapper">
+        <!-- Left Sidebar -->
+        <div class="sidebar" id="left-sidebar">
+            <button class="menu-btn" onclick="showOverlay('battle')">
+                <i>⚔️</i>
+                <span>Битва</span>
+            </button>
+            <button class="menu-btn" onclick="showOverlay('craft')">
+                <i>⚒️</i>
+                <span>Крафт</span>
+            </button>
+        </div>
+
+        <!-- Center Display -->
+        <div id="center-display">
+            <div id="background-layer"></div>
+            
+            <div id="stats-bar">
+                <div class="stat-item">❤️ <span id="hp-val">100/100</span></div>
+                <div class="stat-item">🪙 <span id="gold-val">0</span></div>
+                <div class="stat-item" style="color: #00d2ff;">💎 <span id="crystal-val">0</span></div>
+            </div>
+
+            <div id="character-layer">
+                <img id="character-img" src="" alt="Character">
+                <div id="char-info" style="margin-top: 10px; text-align: center; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 10px;">
+                    <b id="char-name">Игрок</b><br>
+                    <small id="char-class-level">Воин, Ур. 1</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="sidebar" id="right-sidebar">
+            <button class="menu-btn" onclick="showOverlay('raid')">
+                <i>🐉</i>
+                <span>Рейд</span>
+            </button>
+            <button class="menu-btn" onclick="showOverlay('shop')">
+                <i>🏪</i>
+                <span>Магазин</span>
+            </button>
+            <button class="menu-btn" onclick="showOverlay('donate')" style="color: #00d2ff;">
+                <i>💎</i>
+                <span>Премиум</span>
+            </button>
+        </div>
+
+        <!-- Bottom Menu -->
+        <div id="bottom-menu">
+            <button class="menu-btn" onclick="showOverlay('inventory')">
+                <i>🎒</i>
+                <span>Инвентарь</span>
+            </button>
+            <button class="menu-btn" onclick="showOverlay('profile')">
+                <i>📊</i>
+                <span>Профиль</span>
+            </button>
+            <button class="menu-btn" onclick="showOverlay('settings')">
+                <i>⚙️</i>
+                <span>Настройки</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Overlays -->
+    <div id="overlay-battle" class="overlay">
+        <div class="overlay-header">
+            <h2>Сражение</h2>
+            <button class="close-btn" onclick="hideOverlay()">×</button>
+        </div>
+        <div id="battle-list" class="list-container">
+            <!-- Enemies will be loaded here -->
+        </div>
+    </div>
+
+    <div id="overlay-shop" class="overlay">
+        <div class="overlay-header">
+            <h2>Магазин</h2>
+            <button class="close-btn" onclick="hideOverlay()">×</button>
+        </div>
+        <div id="shop-list" class="list-container">
+            <!-- Items will be loaded here -->
+        </div>
+    </div>
+
+    <div id="overlay-inventory" class="overlay">
+        <div class="overlay-header">
+            <h2>Инвентарь</h2>
+            <button class="close-btn" onclick="hideOverlay()">×</button>
+        </div>
+        <div id="inventory-list" class="list-container">
+            <!-- Inventory items will be loaded here -->
+        </div>
+    </div>
+
+    <div id="overlay-profile" class="overlay">
+        <div class="overlay-header">
+            <h2>Профиль</h2>
+            <button class="close-btn" onclick="hideOverlay()">×</button>
+        </div>
+        <div id="profile-details" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px;">
+            <!-- Stats details will be loaded here -->
+        </div>
+    </div>
+
+    <div id="overlay-craft" class="overlay">
+        <div class="overlay-header">
+            <h2>Кузница</h2>
+            <button class="close-btn" onclick="hideOverlay()">×</button>
+        </div>
+        <div id="craft-list" class="list-container">
+            <!-- Рецепты будут здесь -->
+        </div>
+    </div>
+
+    <div id="overlay-raid" class="overlay">
+        <div class="overlay-header">
+            <h2>Мировые Боссы</h2>
+            <button class="close-btn" onclick="hideOverlay()">×</button>
+        </div>
+        <div class="list-item" style="flex-direction: column; text-align: center; background: rgba(0,0,0,0.4); border: 2px solid #e74c3c;">
+            <img src="images/dragon.png" id="boss-img" style="width: 180px; filter: drop-shadow(0 0 10px #e74c3c);">
+            <h3 style="margin: 15px 0; color: #e74c3c; letter-spacing: 2px;">ДРЕВНИЙ ДРАКОН</h3>
+            <div style="display: flex; justify-content: space-around; width: 100%; margin-bottom: 20px; font-size: 14px;">
+                <span>❤️ 500 HP</span>
+                <span>⚔️ 60 ATK</span>
+                <span>⭐ 20 УР</span>
+            </div>
+            <button class="action-btn btn-primary" style="width: 100%; padding: 15px; font-size: 18px;" onclick="startRaid()">БРОСИТЬ ВЫЗОВ</button>
+        </div>
+    </div>
+
+    <div id="overlay-settings" class="overlay">
+        <div class="overlay-header">
+            <h2>Настройки</h2>
+            <button class="close-btn" onclick="hideOverlay()">×</button>
+        </div>
+        <div class="list-container">
+            <div style="background: rgba(243, 156, 18, 0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px dashed var(--accent-color);">
+                <h3 style="color: var(--accent-color); font-size: 14px; margin-bottom: 5px;">🤝 Реферальная система</h3>
+                <p style="font-size: 12px; margin-bottom: 10px;">Приглашай друзей и получай <b>500 золота</b> и <b>10 кристаллов</b> за каждого!</p>
+                <div style="display: flex; gap: 5px;">
+                    <input type="text" id="ref-link" readonly style="flex: 1; background: #000; border: 1px solid #333; color: #fff; padding: 5px; font-size: 10px; border-radius: 5px;">
+                    <button class="action-btn btn-primary" style="padding: 5px 10px; font-size: 10px;" onclick="copyRefLink()">Копировать</button>
+                </div>
+            </div>
+
+            <div class="list-item">
+                <span>Уведомления</span>
+                <input type="checkbox" checked>
+            </div>
+            <div class="list-item">
+                <span>Звук</span>
+                <input type="checkbox">
+            </div>
+            <button class="action-btn btn-primary" onclick="tg.close()">ВЫЙТИ ИЗ ИГРЫ</button>
+        </div>
+    </div>
+
+    <div id="overlay-donate" class="overlay">
+        <div class="overlay-header">
+            <h2>Премиум Магазин</h2>
+            <button class="close-btn" onclick="hideOverlay()">×</button>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.4); padding: 10px 15px; border-radius: 10px; margin-bottom: 20px;">
+            <span>Ваши кристаллы: <b id="crystal-count">0</b> 💎</span>
+            <button class="action-btn btn-primary" style="padding: 5px 10px; font-size: 12px;" onclick="showExchange()">Обменять на золото</button>
+        </div>
+        <div id="donate-list" class="list-container">
+            <div class="list-item">
+                <div class="item-info">
+                    <h4>Горсть кристаллов</h4>
+                    <p>50 кристаллов</p>
+                </div>
+                <button class="action-btn btn-primary" onclick="buyCrystals('crystals_small')">100 ⭐️</button>
+            </div>
+            <div class="list-item">
+                <div class="item-info">
+                    <h4>Мешочек кристаллов</h4>
+                    <p>150 кристаллов</p>
+                </div>
+                <button class="action-btn btn-primary" onclick="buyCrystals('crystals_medium')">250 ⭐️</button>
+            </div>
+            <div class="list-item">
+                <div class="item-info">
+                    <h4>Сундук кристаллов</h4>
+                    <p>500 кристаллов</p>
+                </div>
+                <button class="action-btn btn-primary" onclick="buyCrystals('crystals_large')">700 ⭐️</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        
+        // Показ ошибок на экране
+        window.onerror = function(msg, url, line) {
+            const errDiv = document.createElement('div');
+            errDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:red;color:white;z-index:9999;padding:10px;font-size:12px;word-break:break-all;';
+            errDiv.innerText = 'JS Error: ' + msg + '\nLine: ' + line;
+            document.body.appendChild(errDiv);
+        };
+
+        // Автоматически определяем адрес API
+        let API_BASE = window.location.origin + '/api';
+        
+        // Если мы на GitHub Pages (локальная отладка на ПК)
+        if (window.location.origin.includes('github.io')) {
+            API_BASE = 'http://127.0.0.1:5000/api';
+        }
+        
+        let player = null;
+        let stats = null;
+        let selectedClass = 'warrior';
+        let gameData = {};
+
+        tg.expand();
+        tg.ready();
+
+        const userId = tg.initDataUnsafe?.user?.id || 12345;
+        const username = tg.initDataUnsafe?.user?.username || 'Player';
+        
+        // Get Referral ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const refId = urlParams.get('ref');
+
+        window.onload = async function() {
+            await loadGame();
+            document.getElementById('loading-screen').style.display = 'none';
+            
+            // Set referral link in settings
+            const botUser = 'LegacyWarsBot'; // Replace with actual bot username
+            const refLinkInput = document.getElementById('ref-link');
+            if (refLinkInput) refLinkInput.value = `https://t.me/${botUser}?start=ref${userId}`;
+        };
+
+        async function loadGame() {
+            try {
+                const response = await fetch(`${API_BASE}/player/${userId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    player = data.player;
+                    stats = data.stats;
+                    gameData = {
+                        items: data.items_def,
+                        monsters: data.monsters_def,
+                        classes: data.classes_def,
+                        inventory: data.inventory
+                    };
+                    updateUI();
+                } else {
+                    document.getElementById('creation-screen').style.display = 'flex';
+                    selectClass('warrior');
+                }
+            } catch (e) {
+                console.error("Load error:", e);
+                // For local dev without server
+                document.getElementById('creation-screen').style.display = 'flex';
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('hp-val').innerText = `${player.hp}/${stats.hp_max}`;
+            document.getElementById('gold-val').innerText = player.gold;
+            
+            const crysVal = document.getElementById('crystal-val');
+            if (crysVal) crysVal.innerText = player.crystals;
+            
+            const crysCount = document.getElementById('crystal-count');
+            if (crysCount) crysCount.innerText = player.crystals;
+            
+            document.getElementById('char-name').innerText = player.name;
+            document.getElementById('char-class-level').innerText = `${gameData.classes[player.class].name}, Ур. ${player.level}`;
+            document.getElementById('character-img').src = `images/${player.class}.png`;
+            
+            // Highlight active class in creation if visible
+            document.querySelectorAll('.class-card').forEach(c => c.classList.remove('selected'));
+            const card = document.getElementById(`card-${player.class}`);
+            if (card) card.classList.add('selected');
+        }
+
+        function selectClass(c) {
+            selectedClass = c;
+            document.querySelectorAll('.class-card').forEach(card => card.classList.remove('selected'));
+            document.getElementById(`card-${c}`).classList.add('selected');
+        }
+
+        async function finishCreation() {
+            const name = document.getElementById('name-input').value.trim();
+            if (!name) {
+                tg.showAlert("Введите имя героя!");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/create_player`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        username: username,
+                        name: name,
+                        class_type: selectedClass,
+                        referred_by: refId ? parseInt(refId) : null
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('creation-screen').style.display = 'none';
+                    await loadGame();
+                } else {
+                    tg.showAlert(`Ошибка: ${data.error}`);
+                }
+            } catch (e) {
+                tg.showAlert("Ошибка при создании персонажа");
+            }
+        }
+
+        function showOverlay(id) {
+            hideOverlay();
+            const overlay = document.getElementById(`overlay-${id}`);
+            if (overlay) overlay.classList.add('active');
+            
+            if (id === 'battle') loadBattleList();
+            if (id === 'shop') loadShopList();
+            if (id === 'inventory') loadInventoryList();
+            if (id === 'profile') loadProfile();
+            if (id === 'craft') loadCraftList();
+        }
+
+        function hideOverlay() {
+            document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active'));
+        }
+
+        function loadCraftList() {
+            const container = document.getElementById('craft-list');
+            container.innerHTML = '';
+            
+            const recipes = [
+                { id: 'sword_steel', name: 'Стальной меч', req: '3 руды, 200 золота' },
+                { id: 'staff_mage', name: 'Посох мага', req: '3 кристалла, 300 золота' },
+                { id: 'armor_plate', name: 'Латы', req: '5 руды, 400 золота' }
+            ];
+
+            recipes.forEach(r => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `
+                    <div class="item-info">
+                        <h4>${r.name}</h4>
+                        <p>Нужно: ${r.req}</p>
+                    </div>
+                    <button class="action-btn btn-primary" onclick="craftItem('${r.id}')">КРАФТ</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function craftItem(id) {
+            try {
+                const response = await fetch(`${API_BASE}/action`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, action: 'craft', params: { item_id: id } })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    tg.showAlert(`Вы создали: ${data.item_name}!`);
+                    await loadGame();
+                } else {
+                    tg.showAlert(`Ошибка: ${data.error}`);
+                }
+            } catch (e) {
+                tg.showAlert("Ошибка при крафте");
+            }
+        }
+
+        async function startRaid() {
+            tg.showConfirm("Вы уверены? Босс очень силен!", async (ok) => {
+                if (ok) {
+                    try {
+                        const response = await fetch(`${API_BASE}/action`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ user_id: userId, action: 'raid' })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            let logText = data.log.join('\n');
+                            if (data.win) {
+                                logText += `\n\n🏆 ПОБЕДА НАД БОССОМ!\n⭐ +${data.exp_gain} опыта\n🪙 +${data.gold_gain} золота`;
+                                if (data.drop) logText += `\n🎁 ВЫПАЛО: ${data.drop_name}`;
+                            } else {
+                                logText += `\n\n💀 ВЫ ПОГИБЛИ В РЕЙДЕ...`;
+                            }
+                            tg.showAlert(logText);
+                            await loadGame();
+                        }
+                    } catch (e) {
+                        tg.showAlert("Ошибка в рейде");
+                    }
+                }
+            });
+        }
+
+        function loadBattleList() {
+            const container = document.getElementById('battle-list');
+            container.innerHTML = '';
+            
+            gameData.monsters.forEach((m, idx) => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.style.display = 'flex';
+                item.style.alignItems = 'center';
+                item.style.gap = '15px';
+                
+                item.innerHTML = `
+                    <img src="images/${m.image || 'rat.png'}" style="width: 50px; height: 50px; object-fit: contain; background: rgba(0,0,0,0.3); border-radius: 5px; padding: 5px;">
+                    <div class="item-info" style="flex: 1;">
+                        <h4>${m.name}</h4>
+                        <p>Уровень ${m.level} | ❤️ ${m.hp} | ⚔️ ${m.atk}</p>
+                    </div>
+                    <button class="action-btn btn-primary" onclick="startBattle(${idx})">В БОЙ</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function loadShopList() {
+            const container = document.getElementById('shop-list');
+            container.innerHTML = '';
+            
+            Object.entries(gameData.items).forEach(([id, item]) => {
+                if (item.price) {
+                    const div = document.createElement('div');
+                    div.className = 'list-item';
+                    div.innerHTML = `
+                        <div class="item-info">
+                            <h4>${item.name}</h4>
+                            <p>${item.type === 'weapon' ? 'Атака +' + item.atk : (item.type === 'armor' ? 'Защита +' + item.def : 'Расходник')}</p>
+                        </div>
+                        <button class="action-btn btn-primary" onclick="buyItem('${id}')">${item.price} 🪙</button>
+                    `;
+                    container.appendChild(div);
+                }
+            });
+        }
+
+        function loadInventoryList() {
+            const container = document.getElementById('inventory-list');
+            container.innerHTML = '';
+            
+            if (Object.keys(gameData.inventory).length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #888;">Ваш рюкзак пуст.</p>';
+                return;
+            }
+
+            Object.entries(gameData.inventory).forEach(([id, qty]) => {
+                const item = gameData.items[id];
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `
+                    <div class="item-info">
+                        <h4>${item.name} x${qty}</h4>
+                        <p>${item.type}</p>
+                    </div>
+                    <button class="action-btn btn-primary" onclick="useItem('${id}')">ИСПОЛЬЗОВАТЬ</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function loadProfile() {
+            const container = document.getElementById('profile-details');
+            let classSpecific = '';
+            
+            if (player.class === 'warrior') {
+                classSpecific = `
+                    <div class="stat-group">
+                        <p>💪 Выносливость: <b>${stats.endurance || 0}</b> <small>(+${(stats.endurance || 0)*5} HP)</small></p>
+                        <p>💥 Сила удара: <b>${stats.impact || 0}</b></p>
+                        <p>🔥 Гнев: <b>${player.rage || 0}/${stats.max_rage || 100}</b></p>
+                    </div>
+                `;
+            } else if (player.class === 'mage') {
+                classSpecific = `
+                    <div class="stat-group">
+                        <p>💧 Мана: <b>${player.mana || 0}/${stats.max_mana || 100}</b></p>
+                        <p>🔥 Интенсивность: <b>${stats.spell_intensity || 0}</b></p>
+                        <p>⏰ CDR: <b>${stats.cooldown_reduction || 0}%</b></p>
+                        <p>🔮 Сила магии: <b>${stats.spell_power || 0}</b></p>
+                    </div>
+                `;
+            } else if (player.class === 'rogue') {
+                classSpecific = `
+                    <div class="stat-group">
+                        <p>🏃 Ловкость: <b>${stats.agility || 0}</b></p>
+                        <p>💨 Уклонение: <b>${stats.evasion || 0}%</b></p>
+                        <p>🌑 Скрытность: <b>${stats.stealth || 0}</b></p>
+                    </div>
+                `;
+            } else if (player.class === 'paladin') {
+                classSpecific = `
+                    <div class="stat-group">
+                        <p>✨ Вера: <b>${stats.faith || 0}</b></p>
+                        <p>💫 Аура: <b>Сила ${stats.aura_strength || 0}, Рад. ${stats.aura_radius || 0}</b></p>
+                        <p>💚 Самоисцеление: <b>${(stats.self_heal || 0)*10} HP</b></p>
+                        <p>🔮 Сопр. магии: <b>${stats.magic_resist || 0}%</b></p>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <div>⚔️ Атака: <b>${stats.atk}</b></div>
+                    <div>🛡️ Защита: <b>${stats.def}</b></div>
+                    <div>💥 Крит: <b>${stats.crit}%</b></div>
+                    <div>⭐ Уровень: <b>${player.level}</b></div>
+                </div>
+                <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
+                    <h4 style="font-size: 12px; color: var(--accent-color); margin-bottom: 8px; text-transform: uppercase;">Особенности класса</h4>
+                    ${classSpecific}
+                </div>
+                <div style="margin-top: 15px; font-size: 11px; color: #888;">
+                    ⭐ Опыт: ${player.exp} / ${player.exp_max}
+                </div>
+            `;
+        }
+
+        function getClassSkills() {
+            if (player.class === 'warrior') return `Ярость: ${player.rage}/${player.max_rage}`;
+            if (player.class === 'mage') return `Мана: ${player.mana}/${player.max_mana}`;
+            if (player.class === 'rogue') return `Энергия: ${player.energy}/${player.max_energy}`;
+            if (player.class === 'paladin') return `Свет: ${player.holy_power}/${player.max_holy_power}`;
+            return 'Нет данных';
+        }
+
+        // Actions
+        async function startBattle(idx) {
+            tg.showConfirm(`Начать бой с ${gameData.monsters[idx].name}?`, async (ok) => {
+                if (ok) {
+                    try {
+                        const response = await fetch(`${API_BASE}/action`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                user_id: userId,
+                                action: 'battle',
+                                params: { monster_idx: idx }
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            let logText = data.log.join('\n');
+                            if (data.win) {
+                                logText += `\n\n🏆 ПОБЕДА!\n⭐ +${data.exp_gain} опыта\n🪙 +${data.gold_gain} золота`;
+                                if (data.level_up) logText += `\n\n🎉 НОВЫЙ УРОВЕНЬ!`;
+                            } else {
+                                logText += `\n\n💀 ПОРАЖЕНИЕ...`;
+                            }
+                            tg.showAlert(logText);
+                            await loadGame();
+                        }
+                    } catch (e) {
+                        tg.showAlert("Ошибка в бою");
+                    }
+                }
+            });
+        }
+
+        async function buyItem(id) {
+            const item = gameData.items[id];
+            tg.showConfirm(`Купить ${item.name} за ${item.price} 🪙?`, async (ok) => {
+                if (ok) {
+                    try {
+                        const response = await fetch(`${API_BASE}/action`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                user_id: userId,
+                                action: 'buy',
+                                params: { item_id: id }
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            tg.showAlert(`Вы купили ${item.name}!`);
+                            await loadGame();
+                            loadShopList();
+                        } else {
+                            tg.showAlert(data.error);
+                        }
+                    } catch (e) {
+                        tg.showAlert("Ошибка при покупке");
+                    }
+                }
+            });
+        }
+
+        async function useItem(id) {
+            try {
+                const response = await fetch(`${API_BASE}/action`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        action: 'use',
+                        params: { item_id: id }
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    tg.showAlert(`Предмет использован! HP: ${data.hp}`);
+                    await loadGame();
+                    loadInventoryList();
+                } else {
+                    tg.showAlert(data.error);
+                }
+            } catch (e) {
+                tg.showAlert("Ошибка при использовании");
+            }
+        }
+
+        // Referral & Donate Logic
+        function copyRefLink() {
+            const input = document.getElementById('ref-link');
+            input.select();
+            document.execCommand('copy');
+            tg.showAlert("Ссылка скопирована! Отправь её другу.");
+        }
+
+        async function buyCrystals(packId) {
+            tg.showConfirm("Вы хотите приобрести этот пакет кристаллов?", async (ok) => {
+                if (ok) {
+                    try {
+                        const response = await fetch(`${API_BASE}/donate`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ user_id: userId, pack_id: packId })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            tg.showAlert("Покупка успешна! (Тестовый режим)");
+                            await loadGame();
+                        } else {
+                            tg.showAlert(`Ошибка: ${data.error}`);
+                        }
+                    } catch (e) {
+                        tg.showAlert("Ошибка при совершении покупки");
+                    }
+                }
+            });
+        }
+
+        async function showExchange() {
+            tg.showConfirm("Обменять 10 кристаллов на 1000 золота?", async (ok) => {
+                if (ok) {
+                    const response = await fetch(`${API_BASE}/exchange`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user_id: userId, amount: 10 })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        tg.showAlert("Обмен выполнен!");
+                        await loadGame();
+                    } else {
+                        tg.showAlert(data.error);
+                    }
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>

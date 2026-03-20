@@ -6,6 +6,9 @@ import sqlite3
 import asyncio
 import threading
 import os
+import time
+import socket
+import httpx
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 from flask import Flask, request, jsonify, send_from_directory
@@ -15,18 +18,54 @@ from telegram.ext import (
     Application, CommandHandler, MessageHandler,
     CallbackQueryHandler, filters, ContextTypes, ConversationHandler
 )
-from config import BOT_TOKEN, WEBAPP_URL, ADMIN_IDS, DATABASE_FILE
+from telegram.request import HTTPXRequest
+from dotenv import load_dotenv
+
+# 1. Настройка логирования
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def diagnostic_dns():
+    try:
+        # Пытаемся получить IP через нашу подмененную функцию
+        ip = socket.gethostbyname('api.telegram.org')
+        logger.info(f"✅ DNS ПРОВЕРКА: api.telegram.org -> {ip}")
+        return ip
+    except Exception as e:
+        logger.warning(f"⚠️ DNS ошибка (даже с патчем): {e}")
+        return None
+
+# 2. Загрузка настроек
+load_dotenv()
+
+# Получаем настройки из Secrets (Hugging Face) или .env (Локально)
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+if BOT_TOKEN:
+    BOT_TOKEN = BOT_TOKEN.strip() # Удаляем лишние пробелы
+
+WEBAPP_URL = os.getenv('WEBAPP_URL')
+if WEBAPP_URL:
+    WEBAPP_URL = WEBAPP_URL.strip().rstrip('/') # Удаляем пробелы и лишний слэш в конце
+
+ADMIN_IDS = [int(i) for i in os.getenv('ADMIN_IDS', '1849350469').split(',') if i]
+DATABASE_FILE = os.getenv('DATABASE_FILE', 'legacy_wars.db')
+
+# Проверка обязательных полей
+if not BOT_TOKEN or ":" not in BOT_TOKEN:
+    logger.error("❌ КРИТИЧЕСКАЯ ОШИБКА: BOT_TOKEN пуст или имеет неверный формат!")
+if not WEBAPP_URL:
+    logger.error("❌ КРИТИЧЕСКАЯ ОШИБКА: WEBAPP_URL не найден в Secrets!")
 
 # Flask App Setup
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 flask_app = Flask(__name__, static_folder=BASE_DIR)
 CORS(flask_app)
-application = flask_app # Это нужно для хостинга Beget
+application = flask_app # Это имя ОБЯЗАТЕЛЬНО для PythonAnywhere
 
 def run_flask():
-    logger.info("=== FLASK SERVER STARTING ON PORT 5000 ===")
-    # На хостинге Beget порт может назначаться автоматически
-    port = int(os.environ.get("PORT", 5000))
+    logger.info("=== FLASK SERVER STARTING ===")
+    # Порт 10000 по умолчанию для Render
+    port = int(os.environ.get("PORT", 10000))
     flask_app.run(host='0.0.0.0', port=port, threaded=True)
 
 @flask_app.route('/')
@@ -178,31 +217,50 @@ def handle_action():
                 log.append(f"💔 {monster_template['name']} нанес {m_dmg} урона")
                 
             if p_hp <= 0:
-                db.update_player(user_id, hp=1, deaths=int(player.get('deaths', 0)) + 1)
+                player_deaths = int(player.get('deaths', 0))
+                db.update_player(user_id, hp=1, deaths=player_deaths + 1)
                 return jsonify({'success': True, 'win': False, 'log': log, 'hp': 1})
             else:
                 gold_gain = int(monster_template.get('gold', 0))
                 exp_gain = int(monster_template.get('exp', 0))
-                new_exp = int(player.get('exp', 0)) + exp_gain
+                
+                player_gold = int(player.get('gold', 0))
+                player_exp = int(player.get('exp', 0))
+                player_wins = int(player.get('wins', 0))
+                
+                new_exp = player_exp + exp_gain
                 new_level = int(player.get('level', 1))
                 new_exp_max = int(player.get('exp_max', 100))
+                level_up = False
                 
-                if new_exp >= new_exp_max:
+                while new_exp >= new_exp_max:
                     new_exp -= new_exp_max
                     new_level += 1
                     new_exp_max = get_level_up_exp(new_level)
+                    level_up = True
                 
                 drop = None
                 if random.random() < 0.4:
                     drop = random.choice(['gold_ore', 'crystal', 'dragon_scale'])
                     db.add_item(user_id, drop)
 
-                db.update_player(user_id, hp=p_hp, gold=int(player.get('gold', 0)) + gold_gain, 
-                                 exp=new_exp, level=new_level, exp_max=new_exp_max,
-                                 wins=int(player.get('wins', 0)) + 1)
+                updates = {
+                    'hp': p_hp, 'gold': player_gold + gold_gain, 
+                    'exp': new_exp, 'level': new_level, 'exp_max': new_exp_max,
+                    'wins': player_wins + 1
+                }
+                
+                if level_up:
+                    updates['hp_max'] = player.get('hp_max', 100) + 10
+                    updates['atk'] = player.get('atk', 10) + 2
+                    updates['defense'] = player.get('defense', 5) + 1
+
+                db.update_player(user_id, **updates)
+                
                 return jsonify({
                     'success': True, 'win': True, 'log': log, 
                     'gold_gain': gold_gain, 'exp_gain': exp_gain, 
+                    'level_up': level_up,
                     'drop': drop, 'drop_name': ITEMS[drop]['name'] if drop else None
                 })
         
@@ -337,9 +395,6 @@ LOCATIONS = {
     'dungeon': {'name': '🏰 Подземелье', 'safe': False, 'monsters': [4], 'level_req': 15},
 }
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 class Database:
     def __init__(self, db_file="game.db"):
         self.db_file = db_file
@@ -432,10 +487,13 @@ class Database:
         
         if row:
             p = dict(row)
-            numeric_fields = ['gold', 'crystals', 'level', 'exp', 'exp_max', 'hp', 'hp_max', 
-                             'atk', 'defense', 'crit', 'wins', 'deaths', 'referral_count']
-            for field in numeric_fields:
-                if p.get(field) is None: p[field] = 0
+            # Ensure all numeric fields are actual numbers, not None
+            for key, value in p.items():
+                if value is None:
+                    if key in ['username', 'name', 'class', 'location', 'equipped_weapon', 'equipped_armor', 'equipped_accessory', 'created_at', 'last_daily']:
+                        p[key] = ""
+                    else:
+                        p[key] = 0
             return p
         return None
 
@@ -1069,12 +1127,42 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.effective_message.reply_text(json.dumps({'error': str(e)}))
 
 def main():
-    # Start Flask in a separate thread
-    flask_thread = threading.Thread(target=run_flask)
-    flask_thread.daemon = True
-    flask_thread.start()
+    # ... остальной код main ...
+    # Проверка токена (логируем только первые символы для безопасности)
+    if BOT_TOKEN:
+        logger.info(f"🤖 Запуск бота с токеном: {BOT_TOKEN[:10]}...")
+    else:
+        logger.error("❌ BOT_TOKEN отсутствует!")
+        return
+
+    # 1. Ждем, пока проснется сеть
+    logger.info("⏳ Ожидание готовности сети...")
+    network_ok = False
+    for i in range(5):
+        if diagnostic_dns():
+            network_ok = True
+            logger.info("✅ Сеть готова!")
+            break
+        logger.info(f"📡 Сеть еще не доступна (попытка {i+1}/5), ждем...")
+        time.sleep(5)
+
+    # 2. Запускаем веб-сервер
+    if os.getenv('SPACE_ID') or __name__ == "__main__":
+        flask_thread = threading.Thread(target=run_flask)
+        flask_thread.daemon = True
+        flask_thread.start()
     
-    app = Application.builder().token(BOT_TOKEN).build()
+    # 3. Настраиваем бота с экстремальными таймаутами
+    request = HTTPXRequest(
+        connection_pool_size=20,
+        read_timeout=100, # Увеличили до 100 секунд
+        write_timeout=100,
+        connect_timeout=100,
+        pool_timeout=100,
+        http_version="1.1"
+    )
+    
+    app = Application.builder().token(BOT_TOKEN).request(request).build()
     create_conv = ConversationHandler(entry_points=[CallbackQueryHandler(create_char_callback, pattern='^create_char$')],
         states={ENTER_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, enter_name)]}, fallbacks=[])
     app.add_handler(CommandHandler("start", start))
